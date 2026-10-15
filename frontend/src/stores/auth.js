@@ -13,8 +13,7 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     async login(email, password) {
       try {
-        const res = await axios.post('[https://card-shop-project.onrender.com](https://card-shop-project.onrender.com)/api/auth/login', { email, password });
-        this.token = res.data.token;
+const res = await axios.post('https://card-shop-project.onrender.com/api/auth/login', { email, password });        this.token = res.data.token;
         this.user = res.data.user;
         // บันทึกลงเครื่อง เวลารีเฟรชจะได้ไม่หลุดล็อกอิน
         localStorage.setItem('token', this.token);
