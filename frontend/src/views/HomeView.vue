@@ -13,7 +13,7 @@ const error = ref(null);
 const fetchProducts = async () => {
   try {
     // ยิง GET Request ไปที่ API ของเรา
-    const response = await axios.get('http://localhost:3000/api/products');
+    const response = await axios.get('[https://card-shop-project.onrender.com](https://card-shop-project.onrender.com)/api/products');
     products.value = response.data; // เอาข้อมูลไปใส่ในตัวแปร
   } catch (err) {
     error.value = 'ไม่สามารถโหลดข้อมูลสินค้าได้: ' + err.message;
@@ -50,7 +50,7 @@ onMounted(() => {
         <figure class="px-4 pt-4">
           <img 
             v-if="product.image_url" 
-            :src="'http://localhost:3000/uploads/products/' + product.image_url" 
+            :src="'[https://card-shop-project.onrender.com](https://card-shop-project.onrender.com)/uploads/products/' + product.image_url" 
             alt="Card Image" 
             class="rounded-xl h-48 object-contain w-full"
           />

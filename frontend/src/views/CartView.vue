@@ -36,7 +36,7 @@ const proceedToCheckout = () => {
           
           <img 
             v-if="item.image_url" 
-            :src="'http://localhost:3000/uploads/products/' + item.image_url" 
+            :src="'[https://card-shop-project.onrender.com](https://card-shop-project.onrender.com)/uploads/products/' + item.image_url" 
             class="w-20 h-24 object-cover rounded border"
           />
           <div v-else class="w-20 h-24 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-400">
