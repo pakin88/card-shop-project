@@ -31,7 +31,10 @@ const handleLogout = () => {
     </div>
   </router-link>
         <!-- แสดงปุ่มล็อกอินถ้ายังไม่เข้าระบบ -->
-        <router-link v-if="!authStore.isLoggedIn" to="/login" class="btn btn-primary">เข้าสู่ระบบ</router-link>
+<div v-if="!authStore.isLoggedIn" class="flex-none space-x-2">
+          <router-link to="/register" class="btn btn-outline btn-primary btn-sm">สมัครสมาชิก</router-link>
+          <router-link to="/login" class="btn btn-primary btn-sm text-white">เข้าสู่ระบบ</router-link>
+        </div>
         
         <!-- แสดงชื่อและปุ่มออกจากระบบถ้าล็อกอินแล้ว -->
         <div v-else class="flex items-center space-x-4">

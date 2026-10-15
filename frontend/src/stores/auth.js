@@ -29,6 +29,15 @@ export const useAuthStore = defineStore('auth', {
       this.token = null;
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-    }
+    },
+    async register(userData) {
+      try {
+        // ยิงไปที่ URL ของ Render เลย เพราะตอนนี้ระบบเราออนไลน์แล้ว
+        const response = await axios.post('https://card-shop-project.onrender.com/api/auth/register', userData);
+        return { success: true, message: response.data.message };
+      } catch (error) {
+        return { success: false, message: error.response?.data?.message || 'สมัครสมาชิกไม่สำเร็จ' };
+      }
+    },
   }
 });
