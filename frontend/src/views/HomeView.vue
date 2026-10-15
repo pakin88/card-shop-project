@@ -13,8 +13,7 @@ const error = ref(null);
 const fetchProducts = async () => {
   try {
     // ยิง GET Request ไปที่ API ของเรา
-    const response = await axios.get('[https://card-shop-project.onrender.com](https://card-shop-project.onrender.com)/api/products');
-    products.value = response.data; // เอาข้อมูลไปใส่ในตัวแปร
+const response = await axios.get('https://card-shop-project.onrender.com/api/products');    products.value = response.data; // เอาข้อมูลไปใส่ในตัวแปร
   } catch (err) {
     error.value = 'ไม่สามารถโหลดข้อมูลสินค้าได้: ' + err.message;
   } finally {
