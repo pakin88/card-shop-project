@@ -74,9 +74,10 @@ exports.getAllOrders = async (req, res) => {
         `);
 
         // ดึงรายการการ์ดข้างในของแต่ละออเดอร์
+// ดึงรายการการ์ดข้างในของแต่ละออเดอร์
         for (let order of orders) {
             const [items] = await db.query(`
-                SELECT oi.*, p.name AS product_name 
+                SELECT oi.*, p.name AS product_name, p.price AS product_price 
                 FROM order_items oi 
                 LEFT JOIN products p ON oi.product_id = p.id 
                 WHERE oi.order_id = ?
