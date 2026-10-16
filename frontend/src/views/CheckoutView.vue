@@ -54,7 +54,8 @@ const submitOrder = async () => {
       orderData.append('slip_image', slipFile.value);
     }
 
-    const response = await axios.post('[https://card-shop-project.onrender.com](https://card-shop-project.onrender.com)/api/orders', orderData, {
+  
+const response = await axios.post('https://card-shop-project.onrender.com/api/orders', orderData, {
       headers: {
         'Authorization': `Bearer ${authStore.token}`,
         'Content-Type': 'multipart/form-data'
