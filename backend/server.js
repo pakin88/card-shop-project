@@ -19,6 +19,7 @@ require('./config/db.js');
 
 // === 1. เปิดให้ดึงรูปภาพจากโฟลเดอร์ uploads ผ่าน URL ได้ ===
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // =========================================================
 
 // Route พื้นฐานเอาไว้ทดสอบ

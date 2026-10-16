@@ -63,3 +63,48 @@ exports.createOrder = async (req, res) => {
         connection.release(); 
     }
 };
+// 1. ดึงคำสั่งซื้อทั้งหมดพร้อมรายการการ์ด (สำหรับ Admin)
+exports.getAllOrders = async (req, res) => {
+    try {
+        const [orders] = await db.query(`
+            SELECT o.*, u.username, u.email 
+            FROM orders o 
+            LEFT JOIN users u ON o.user_id = u.id 
+            ORDER BY o.created_at DESC
+        `);
+
+        // ดึงรายการการ์ดข้างในของแต่ละออเดอร์
+        for (let order of orders) {
+            const [items] = await db.query(`
+                SELECT oi.*, p.name AS product_name 
+                FROM order_items oi 
+                LEFT JOIN products p ON oi.product_id = p.id 
+                WHERE oi.order_id = ?
+            `, [order.id]);
+            order.items = items;
+        }
+
+        res.json(orders);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'เกิดข้อผิดพลาดในการดึงข้อมูลคำสั่งซื้อ' });
+    }
+};
+
+// 2. อัปเดตสถานะและเลขพัสดุ (สำหรับ Admin)
+exports.updateOrderStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status, tracking_number } = req.body;
+
+        await db.query(
+            'UPDATE orders SET status = ?, tracking_number = ? WHERE id = ?',
+            [status, tracking_number || null, id]
+        );
+
+        res.json({ message: 'อัปเดตสถานะคำสั่งซื้อสำเร็จ!' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'เกิดข้อผิดพลาดในการอัปเดตสถานะ' });
+    }
+};
