@@ -13,7 +13,13 @@ const errorMessage = ref('');
 const selectedSlip = ref(null); // สำหรับเปิดดูรูปสลิปขนาดใหญ่
 
 const API_URL = 'https://card-shop-project.onrender.com';
-
+// ฟังก์ชันแปลงเวลาให้ตรงกับเวลาประเทศไทย (ชดเชยเวลา Database ที่ช้ากว่า 8 ชม.)
+const formatThaiTime = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    date.setHours(date.getHours() + 8); // บวกชดเชย 8 ชั่วโมง
+    return date.toLocaleString('th-TH');
+};
 // ดึงข้อมูลออเดอร์ทั้งหมด
 const fetchOrders = async () => {
     loading.value = true;
@@ -50,11 +56,11 @@ const updateOrder = async (order) => {
 // แปลงลิงก์รูปสลิปให้แสดงผลถูกต้อง
 // แปลงลิงก์รูปสลิปให้แสดงผลถูกต้องเสมอ
 const getSlipUrl = (slip) => {
-  if (!slip) return '';
-  if (slip.startsWith('http')) return slip;
-  // ตัดคำว่า uploads/ หรือ \uploads\ ด้านหน้าออกก่อน แล้วจัดรูปแบบใหม่ให้คลีน
-  const fileName = slip.replace(/^\/?uploads[\/\\]/, '');
-  return `${API_URL}/uploads/${fileName}`;
+    if (!slip) return '';
+    if (slip.startsWith('http')) return slip;
+    // ตัดคำว่า uploads/ หรือ \uploads\ ด้านหน้าออกก่อน แล้วจัดรูปแบบใหม่ให้คลีน
+    const fileName = slip.replace(/^\/?uploads[\/\\]/, '');
+    return `${API_URL}/uploads/${fileName}`;
 };
 onMounted(() => {
     if (!authStore.isAdmin) {
@@ -98,16 +104,16 @@ onMounted(() => {
                             </h2>
                             <p class="text-sm text-gray-400">
                                 ผู้สั่ง: {{ order.username || 'ลูกค้า' }} ({{ order.email || '-' }}) | โทร: {{
-                                order.phone }}
+                                    order.phone }}
                             </p>
                             <p class="text-sm mt-1"><strong>ที่อยู่จัดส่ง:</strong> {{ order.shipping_address }}</p>
                         </div>
 
                         <div class="text-right">
                             <p class="text-2xl font-bold text-primary">฿{{ Number(order.total_amount).toLocaleString()
-                                }}</p>
-                            <p class="text-xs text-gray-400">{{ new Date(order.created_at).toLocaleString('th-TH') }}
-                            </p>
+                            }}</p>
+                            <!-- แก้จาก {{ new Date(order.created_at).toLocaleString('th-TH') }} เป็นบรรทัดนี้ -->
+                            <p class="text-xs text-gray-400">{{ formatThaiTime(order.created_at) }}</p>
                         </div>
                     </div>
 
@@ -118,7 +124,7 @@ onMounted(() => {
                             <ul class="space-y-1 text-sm bg-base-200 p-3 rounded-lg">
                                 <li v-for="item in order.items" :key="item.id" class="flex justify-between">
                                     <span>{{ item.product_name || `รหัสสินค้า #${item.product_id}` }} (x{{ item.quantity
-                                        }})</span>
+                                    }})</span>
                                     <!-- แก้จาก ฿{{ (item.price * item.quantity).toLocaleString() }} เป็นบรรทัดด้านล่างนี้ -->
                                     <span class="font-medium">
                                         ฿{{ (Number(item.price || item.price_at_purchase || item.unit_price ||
