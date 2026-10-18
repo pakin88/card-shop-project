@@ -15,7 +15,7 @@ exports.getAllProducts = async (req, res) => {
 // 2. เพิ่มการ์ดใบใหม่ (สำหรับ Admin)
 exports.createProduct = async (req, res) => {
     try {
-        const { name, category, rarity, price, stock } = req.body;
+        const { name, category_id, rarity, price, stock } = req.body;
         
         let image_url = null;
         if (req.file) {
@@ -25,9 +25,9 @@ exports.createProduct = async (req, res) => {
         }
 
         const [result] = await db.query(
-            `INSERT INTO products (name, price, stock, category, rarity, image_url) 
+            `INSERT INTO products (name, price, stock, category_id, rarity, image_url) 
              VALUES (?, ?, ?, ?, ?, ?)`,
-            [name, price, stock, category, rarity, image_url]
+            [name, price, stock, category_id, rarity, image_url]
         );
 
         res.status(201).json({ message: 'เพิ่มการ์ดสำเร็จ!', productId: result.insertId });
@@ -41,7 +41,7 @@ exports.createProduct = async (req, res) => {
 exports.updateProduct = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, category, rarity, price, stock } = req.body;
+        const { name, category_id, rarity, price, stock } = req.body;
 
         if (req.file) {
             const fileData = fs.readFileSync(req.file.path);
@@ -50,16 +50,16 @@ exports.updateProduct = async (req, res) => {
 
             await db.query(
                 `UPDATE products 
-                 SET name = ?, price = ?, stock = ?, category = ?, rarity = ?, image_url = ? 
+                 SET name = ?, price = ?, stock = ?, category_id = ?, rarity = ?, image_url = ? 
                  WHERE id = ?`,
-                [name, price, stock, category, rarity, image_url, id]
+                [name, price, stock, category_id, rarity, image_url, id]
             );
         } else {
             await db.query(
                 `UPDATE products 
-                 SET name = ?, price = ?, stock = ?, category = ?, rarity = ? 
+                 SET name = ?, price = ?, stock = ?, category_id = ?, rarity = ? 
                  WHERE id = ?`,
-                [name, price, stock, category, rarity, id]
+                [name, price, stock, category_id, rarity, id]
             );
         }
 
