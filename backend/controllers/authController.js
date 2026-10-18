@@ -59,7 +59,7 @@ exports.login = async (req, res) => {
         const token = jwt.sign(
             { id: user.id, role: user.role },
             process.env.JWT_SECRET,
-            { expiresIn: '1d' } // Token มีอายุ 1 วัน
+            { expiresIn: '30d' } // Token มีอายุ 30 วัน
         );
 
         res.json({

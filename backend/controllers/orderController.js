@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const fs = require('fs');
 
 // ฟังก์ชันสร้างคำสั่งซื้อใหม่ (รับข้อมูลจากหน้า Checkout)
 exports.createOrder = async (req, res) => {
@@ -9,7 +10,14 @@ exports.createOrder = async (req, res) => {
     try {
         const { total_amount, payment_method, shipping_address, phone, items } = req.body;
         const user_id = req.user.id; // ได้มาจาก authMiddleware
-        const slip_image = req.file ? req.file.filename : null;
+        
+        // แปลงไฟล์รูปสลิปเป็น Base64 เพื่อเก็บลงฐานข้อมูลโดยตรง (รูปจะไม่หายเมื่อ Render รีสตาร์ท)
+        let slip_image = null;
+        if (req.file) {
+            const fileData = fs.readFileSync(req.file.path);
+            const base64Image = fileData.toString('base64');
+            slip_image = `data:${req.file.mimetype};base64,${base64Image}`;
+        }
 
         // เช็คว่าถ้าเลือกโอนเงินหรือ QR ต้องมีรูปสลิป
         if ((payment_method === 'transfer' || payment_method === 'qr') && !slip_image) {
@@ -26,7 +34,6 @@ exports.createOrder = async (req, res) => {
         const orderId = orderResult.insertId;
 
         // 2. บันทึกรายการสินค้าลง order_items พร้อมตัดสต็อก
-        // รับ items มาในรูปแบบ JSON String (เพราะแนบไฟล์มากับ form-data ต้องแปลงก่อน)
         const parsedItems = JSON.parse(items);
 
         for (let item of parsedItems) {
@@ -63,6 +70,7 @@ exports.createOrder = async (req, res) => {
         connection.release(); 
     }
 };
+
 // 1. ดึงคำสั่งซื้อทั้งหมดพร้อมรายการการ์ด (สำหรับ Admin)
 exports.getAllOrders = async (req, res) => {
     try {
@@ -74,7 +82,6 @@ exports.getAllOrders = async (req, res) => {
         `);
 
         // ดึงรายการการ์ดข้างในของแต่ละออเดอร์
-// ดึงรายการการ์ดข้างในของแต่ละออเดอร์
         for (let order of orders) {
             const [items] = await db.query(`
                 SELECT oi.*, p.name AS product_name, p.price AS product_price 

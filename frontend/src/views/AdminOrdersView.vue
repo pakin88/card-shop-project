@@ -56,11 +56,10 @@ const updateOrder = async (order) => {
 // แปลงลิงก์รูปสลิปให้แสดงผลถูกต้อง
 // แปลงลิงก์รูปสลิปให้แสดงผลถูกต้องเสมอ
 const getSlipUrl = (slip) => {
-    if (!slip) return '';
-    if (slip.startsWith('http')) return slip;
-    // ตัดคำว่า uploads/ หรือ \uploads\ ด้านหน้าออกก่อน แล้วจัดรูปแบบใหม่ให้คลีน
-    const fileName = slip.replace(/^\/?uploads[\/\\]/, '');
-    return `${API_URL}/uploads/${fileName}`;
+  if (!slip) return '';
+  if (slip.startsWith('data:image') || slip.startsWith('http')) return slip;
+  const fileName = slip.replace(/^\/?uploads[\/\\]/, '');
+  return `${API_URL}/uploads/${fileName}`;
 };
 onMounted(() => {
     if (!authStore.isAdmin) {
