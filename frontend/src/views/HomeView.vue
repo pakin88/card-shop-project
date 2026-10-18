@@ -52,7 +52,12 @@ onMounted(() => {
         
         <!-- รูปภาพการ์ด (ถ้าไม่มีรูปให้โชว์กล่องสีเทาแทน) -->
         <figure class="px-4 pt-4">
-<img v-if="product.image_url" :src="getImageUrl(product.image_url)" :alt="product.name" class="w-full h-full object-contain" />
+          <img 
+            v-if="product.image_url" 
+            :src="getImageUrl(product.image_url)" 
+            alt="Card Image" 
+            class="rounded-xl h-48 object-contain w-full"
+          />
           <div v-else class="rounded-xl h-48 w-full bg-gray-200 flex items-center justify-center text-gray-400">
             ไม่มีรูปภาพ
           </div>
