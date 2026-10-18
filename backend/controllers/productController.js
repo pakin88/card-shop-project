@@ -8,14 +8,14 @@ exports.getAllProducts = async (req, res) => {
         res.json(products);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'เกิดข้อผิดพลาดในการดึงข้อมูลสินค้า' });
+        res.status(500).json({ message: 'เกิดข้อผิดพลาดในการดึงข้อมูลสินค้า: ' + error.message });
     }
 };
 
 // 2. เพิ่มการ์ดใบใหม่ (สำหรับ Admin)
 exports.createProduct = async (req, res) => {
     try {
-        const { name, category, rarity, price, stock, description } = req.body;
+        const { name, category, rarity, price, stock } = req.body;
         
         let image_url = null;
         if (req.file) {
@@ -25,15 +25,15 @@ exports.createProduct = async (req, res) => {
         }
 
         const [result] = await db.query(
-            `INSERT INTO products (name, description, price, stock, category, rarity, image_url) 
-             VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [name, description || '', price, stock, category, rarity, image_url]
+            `INSERT INTO products (name, price, stock, category, rarity, image_url) 
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            [name, price, stock, category, rarity, image_url]
         );
 
         res.status(201).json({ message: 'เพิ่มการ์ดสำเร็จ!', productId: result.insertId });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'เกิดข้อผิดพลาดในการเพิ่มสินค้า' });
+        res.status(500).json({ message: 'เพิ่มสินค้าไม่สำเร็จ: ' + error.message });
     }
 };
 
@@ -41,9 +41,8 @@ exports.createProduct = async (req, res) => {
 exports.updateProduct = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, category, rarity, price, stock, description } = req.body;
+        const { name, category, rarity, price, stock } = req.body;
 
-        // เช็คก่อนว่ามีการอัปโหลดรูปใหม่มาไหม
         if (req.file) {
             const fileData = fs.readFileSync(req.file.path);
             const base64Image = fileData.toString('base64');
@@ -51,24 +50,23 @@ exports.updateProduct = async (req, res) => {
 
             await db.query(
                 `UPDATE products 
-                 SET name = ?, description = ?, price = ?, stock = ?, category = ?, rarity = ?, image_url = ? 
+                 SET name = ?, price = ?, stock = ?, category = ?, rarity = ?, image_url = ? 
                  WHERE id = ?`,
-                [name, description || '', price, stock, category, rarity, image_url, id]
+                [name, price, stock, category, rarity, image_url, id]
             );
         } else {
-            // ถ้าไม่ได้เลือกรูปใหม่ ให้ใช้รูปเดิมในฐานข้อมูล
             await db.query(
                 `UPDATE products 
-                 SET name = ?, description = ?, price = ?, stock = ?, category = ?, rarity = ? 
+                 SET name = ?, price = ?, stock = ?, category = ?, rarity = ? 
                  WHERE id = ?`,
-                [name, description || '', price, stock, category, rarity, id]
+                [name, price, stock, category, rarity, id]
             );
         }
 
         res.json({ message: 'อัปเดตข้อมูลการ์ดสำเร็จ!' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'เกิดข้อผิดพลาดในการแก้ไขสินค้า' });
+        res.status(500).json({ message: 'แก้ไขสินค้าไม่สำเร็จ: ' + error.message });
     }
 };
 
