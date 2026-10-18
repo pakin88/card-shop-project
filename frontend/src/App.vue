@@ -56,6 +56,13 @@ const handleLogout = () => {
             class="btn btn-warning btn-sm text-black font-bold mr-2">
             จัดการออเดอร์ (Admin)
           </router-link>
+          <router-link 
+  v-if="authStore.isAdmin" 
+  to="/admin/products" 
+  class="btn btn-accent btn-sm text-black font-bold mr-2"
+>
+  จัดการสินค้า (Admin)
+</router-link>
         </div>
       </div>
     </div>

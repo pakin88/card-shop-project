@@ -1,14 +1,10 @@
 const db = require('../config/db');
+const fs = require('fs');
 
-// ดึงรายการการ์ดทั้งหมด (ลูกค้าและ Admin ใช้)
+// 1. ดึงข้อมูลการ์ดทั้งหมด
 exports.getAllProducts = async (req, res) => {
     try {
-        const [products] = await db.query(`
-            SELECT p.*, c.name as category_name 
-            FROM products p 
-            LEFT JOIN categories c ON p.category_id = c.id
-            ORDER BY p.created_at DESC
-        `);
+        const [products] = await db.query('SELECT * FROM products ORDER BY id DESC');
         res.json(products);
     } catch (error) {
         console.error(error);
@@ -16,34 +12,74 @@ exports.getAllProducts = async (req, res) => {
     }
 };
 
-// เพิ่มการ์ดใบใหม่ (เฉพาะ Admin)
+// 2. เพิ่มการ์ดใบใหม่ (สำหรับ Admin)
 exports.createProduct = async (req, res) => {
     try {
-        const { category_id, name, description, rarity, card_condition, price, stock } = req.body;
-        // เช็คว่ามีการอัปโหลดรูปมาไหม ถ้ามีให้เอาชื่อไฟล์มาเก็บ ถ้าไม่มีให้เป็น null
-        const image_url = req.file ? req.file.filename : null;
+        const { name, category, rarity, price, stock, description } = req.body;
+        
+        let image_url = null;
+        if (req.file) {
+            const fileData = fs.readFileSync(req.file.path);
+            const base64Image = fileData.toString('base64');
+            image_url = `data:${req.file.mimetype};base64,${base64Image}`;
+        }
 
         const [result] = await db.query(
-            `INSERT INTO products (category_id, name, description, rarity, card_condition, price, stock, image_url) 
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-            [category_id, name, description, rarity, card_condition, price, stock, image_url]
+            `INSERT INTO products (name, description, price, stock, category, rarity, image_url) 
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [name, description || '', price, stock, category, rarity, image_url]
         );
 
-        res.status(201).json({ message: 'เพิ่มการ์ดสำเร็จ', productId: result.insertId });
+        res.status(201).json({ message: 'เพิ่มการ์ดสำเร็จ!', productId: result.insertId });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'เกิดข้อผิดพลาดในการเพิ่มสินค้า' });
     }
 };
 
-// ลบการ์ด (เฉพาะ Admin)
-exports.deleteProduct = async (req, res) => {
+// 3. แก้ไขข้อมูลการ์ด (สำหรับ Admin)
+exports.updateProduct = async (req, res) => {
     try {
-        const productId = req.params.id;
-        await db.query('DELETE FROM products WHERE id = ?', [productId]);
-        res.json({ message: 'ลบการ์ดสำเร็จ' });
+        const { id } = req.params;
+        const { name, category, rarity, price, stock, description } = req.body;
+
+        // เช็คก่อนว่ามีการอัปโหลดรูปใหม่มาไหม
+        if (req.file) {
+            const fileData = fs.readFileSync(req.file.path);
+            const base64Image = fileData.toString('base64');
+            const image_url = `data:${req.file.mimetype};base64,${base64Image}`;
+
+            await db.query(
+                `UPDATE products 
+                 SET name = ?, description = ?, price = ?, stock = ?, category = ?, rarity = ?, image_url = ? 
+                 WHERE id = ?`,
+                [name, description || '', price, stock, category, rarity, image_url, id]
+            );
+        } else {
+            // ถ้าไม่ได้เลือกรูปใหม่ ให้ใช้รูปเดิมในฐานข้อมูล
+            await db.query(
+                `UPDATE products 
+                 SET name = ?, description = ?, price = ?, stock = ?, category = ?, rarity = ? 
+                 WHERE id = ?`,
+                [name, description || '', price, stock, category, rarity, id]
+            );
+        }
+
+        res.json({ message: 'อัปเดตข้อมูลการ์ดสำเร็จ!' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'เกิดข้อผิดพลาดในการลบสินค้า' });
+        res.status(500).json({ message: 'เกิดข้อผิดพลาดในการแก้ไขสินค้า' });
+    }
+};
+
+// 4. ลบการ์ด (สำหรับ Admin)
+exports.deleteProduct = async (req, res) => {
+    try {
+        const { id } = req.params;
+        await db.query('DELETE FROM products WHERE id = ?', [id]);
+        res.json({ message: 'ลบการ์ดออกจากระบบสำเร็จ!' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'ไม่สามารถลบได้ (การ์ดใบนี้อาจอยู่ในประวัติใบสั่งซื้อแล้ว)' });
     }
 };

@@ -19,6 +19,11 @@ const response = await axios.get('https://card-shop-project.onrender.com/api/pro
   } finally {
     loading.value = false; // ปิดสถานะกำลังโหลด
   }
+const getImageUrl = (img) => {
+  if (!img) return '';
+  if (img.startsWith('data:image') || img.startsWith('http')) return img;
+  return `https://card-shop-project.onrender.com/uploads/${img.replace(/^\/?uploads[\/\\]/, '')}`;
+};
 };
 
 // ให้เรียกฟังก์ชันดึงข้อมูลทันทีที่เปิดหน้านี้ขึ้นมา
@@ -47,12 +52,7 @@ onMounted(() => {
         
         <!-- รูปภาพการ์ด (ถ้าไม่มีรูปให้โชว์กล่องสีเทาแทน) -->
         <figure class="px-4 pt-4">
-          <img 
-            v-if="product.image_url" 
-            :src="'[https://card-shop-project.onrender.com](https://card-shop-project.onrender.com)/uploads/products/' + product.image_url" 
-            alt="Card Image" 
-            class="rounded-xl h-48 object-contain w-full"
-          />
+<img v-if="product.image_url" :src="getImageUrl(product.image_url)" :alt="product.name" class="w-full h-full object-contain" />
           <div v-else class="rounded-xl h-48 w-full bg-gray-200 flex items-center justify-center text-gray-400">
             ไม่มีรูปภาพ
           </div>

@@ -6,6 +6,7 @@ import CheckoutView from '../views/CheckoutView.vue'; // <-- นำเข้า
 import RegisterView from '../views/RegisterView.vue';
 import AdminOrdersView from '../views/AdminOrdersView.vue';
 import MyOrdersView from '../views/MyOrdersView.vue';
+import AdminProductsView from '../views/AdminProductsView.vue';
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -15,7 +16,8 @@ const router = createRouter({
     { path: '/checkout', name: 'checkout', component: CheckoutView },
     { path: '/register', name: 'register', component: RegisterView },
     { path: '/admin/orders', name: 'admin-orders', component: AdminOrdersView },
-    { path: '/my-orders', name: 'my-orders', component: MyOrdersView }
+    { path: '/my-orders', name: 'my-orders', component: MyOrdersView },
+    { path: '/admin/products', name: 'admin-products', component: AdminProductsView }
   ]
 });
 
