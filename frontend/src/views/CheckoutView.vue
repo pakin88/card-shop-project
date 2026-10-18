@@ -61,11 +61,10 @@ const response = await axios.post('https://card-shop-project.onrender.com/api/or
         'Content-Type': 'multipart/form-data'
       }
     });
-
-    if (response.status === 201) {
+if (response.status === 201) {
       alert('สั่งซื้อสำเร็จ! รอ Admin ตรวจสอบ');
       cartStore.clearCart(); // ล้างตะกร้า
-      router.push('/'); // พาไปหน้าแรก (เดี๋ยวค่อยแก้ไปหน้าประวัติ)
+      router.push('/my-orders'); // <-- เปลี่ยนจาก '/' เป็น '/my-orders'
     }
 
   } catch (error) {

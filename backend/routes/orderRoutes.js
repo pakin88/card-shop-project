@@ -10,4 +10,5 @@ router.post('/', verifyToken, upload.single('slip_image'), orderController.creat
 // เพิ่ม 2 บรรทัดนี้สำหรับ Admin
 router.get('/', orderController.getAllOrders);
 router.put('/:id/status', orderController.updateOrderStatus);
+router.get('/my-orders', verifyToken, orderController.getMyOrders);
 module.exports = router;

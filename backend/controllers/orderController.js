@@ -116,3 +116,28 @@ exports.updateOrderStatus = async (req, res) => {
         res.status(500).json({ message: 'เกิดข้อผิดพลาดในการอัปเดตสถานะ' });
     }
 };
+exports.getMyOrders = async (req, res) => {
+    try {
+        const user_id = req.user.id;
+        const [orders] = await db.query(`
+            SELECT * FROM orders 
+            WHERE user_id = ? 
+            ORDER BY created_at DESC
+        `, [user_id]);
+
+        for (let order of orders) {
+            const [items] = await db.query(`
+                SELECT oi.*, p.name AS product_name, p.price AS product_price 
+                FROM order_items oi 
+                LEFT JOIN products p ON oi.product_id = p.id 
+                WHERE oi.order_id = ?
+            `, [order.id]);
+            order.items = items;
+        }
+
+        res.json(orders);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'เกิดข้อผิดพลาดในการดึงประวัติการสั่งซื้อ' });
+    }
+};

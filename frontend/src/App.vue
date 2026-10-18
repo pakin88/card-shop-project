@@ -45,6 +45,13 @@ const handleLogout = () => {
           <span class="font-semibold text-success">{{ authStore.user.username }}</span>
           <button @click="handleLogout" class="btn btn-error btn-sm">ออกจากระบบ</button>
           <!-- ปุ่มสำหรับ Admin เท่านั้น -->
+           <router-link 
+  v-if="authStore.isLoggedIn" 
+  to="/my-orders" 
+  class="btn btn-ghost btn-sm mr-2"
+>
+  ประวัติการสั่งซื้อ
+</router-link>
           <router-link v-if="authStore.isAdmin" to="/admin/orders"
             class="btn btn-warning btn-sm text-black font-bold mr-2">
             จัดการออเดอร์ (Admin)
