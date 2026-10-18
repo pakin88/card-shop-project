@@ -1,10 +1,34 @@
 const db = require('../config/db');
 const fs = require('fs');
 
-// 1. ดึงข้อมูลการ์ดทั้งหมด
+// ฟังก์ชันช่วยแปลงชื่อหมวดหมู่จากหน้าเว็บ ให้เป็น category_id อัตโนมัติ
+async function getCategoryId(category_id, categoryName) {
+    if (category_id) return category_id;
+    if (!categoryName) return 1;
+
+    try {
+        // ค้นหา id จากชื่อหมวดหมู่ในตาราง categories
+        const [rows] = await db.query('SELECT id FROM categories WHERE name = ?', [categoryName.trim()]);
+        if (rows.length > 0) {
+            return rows[0].id;
+        }
+        // ถ้าพิมพ์ชื่อหมวดหมู่ใหม่ที่ยังไม่มีในระบบ ให้สร้างหมวดหมู่ใหม่ให้อัตโนมัติ
+        const [result] = await db.query('INSERT INTO categories (name) VALUES (?)', [categoryName.trim()]);
+        return result.insertId;
+    } catch (err) {
+        return 1; // ค่าเริ่มต้นหากตาราง categories มีปัญหา
+    }
+}
+
+// 1. ดึงข้อมูลการ์ดทั้งหมด พร้อมดึงชื่อหมวดหมู่จากตาราง categories
 exports.getAllProducts = async (req, res) => {
     try {
-        const [products] = await db.query('SELECT * FROM products ORDER BY id DESC');
+        const [products] = await db.query(`
+            SELECT p.*, c.name AS category, c.name AS category_name 
+            FROM products p 
+            LEFT JOIN categories c ON p.category_id = c.id 
+            ORDER BY p.id DESC
+        `);
         res.json(products);
     } catch (error) {
         console.error(error);
@@ -15,7 +39,8 @@ exports.getAllProducts = async (req, res) => {
 // 2. เพิ่มการ์ดใบใหม่ (สำหรับ Admin)
 exports.createProduct = async (req, res) => {
     try {
-        const { name, category_id, rarity, price, stock } = req.body;
+        const { name, category, category_id, rarity, price, stock, description } = req.body;
+        const resolvedCategoryId = await getCategoryId(category_id, category);
         
         let image_url = null;
         if (req.file) {
@@ -25,9 +50,9 @@ exports.createProduct = async (req, res) => {
         }
 
         const [result] = await db.query(
-            `INSERT INTO products (name, price, stock, category_id, rarity, image_url) 
-             VALUES (?, ?, ?, ?, ?, ?)`,
-            [name, price, stock, category_id, rarity, image_url]
+            `INSERT INTO products (category_id, name, description, rarity, price, stock, image_url) 
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [resolvedCategoryId, name, description || '', rarity, price, stock, image_url]
         );
 
         res.status(201).json({ message: 'เพิ่มการ์ดสำเร็จ!', productId: result.insertId });
@@ -41,7 +66,8 @@ exports.createProduct = async (req, res) => {
 exports.updateProduct = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, category_id, rarity, price, stock } = req.body;
+        const { name, category, category_id, rarity, price, stock, description } = req.body;
+        const resolvedCategoryId = await getCategoryId(category_id, category);
 
         if (req.file) {
             const fileData = fs.readFileSync(req.file.path);
@@ -50,16 +76,16 @@ exports.updateProduct = async (req, res) => {
 
             await db.query(
                 `UPDATE products 
-                 SET name = ?, price = ?, stock = ?, category_id = ?, rarity = ?, image_url = ? 
+                 SET category_id = ?, name = ?, description = ?, rarity = ?, price = ?, stock = ?, image_url = ? 
                  WHERE id = ?`,
-                [name, price, stock, category_id, rarity, image_url, id]
+                [resolvedCategoryId, name, description || '', rarity, price, stock, image_url, id]
             );
         } else {
             await db.query(
                 `UPDATE products 
-                 SET name = ?, price = ?, stock = ?, category_id = ?, rarity = ? 
+                 SET category_id = ?, name = ?, description = ?, rarity = ?, price = ?, stock = ? 
                  WHERE id = ?`,
-                [name, price, stock, category_id, rarity, id]
+                [resolvedCategoryId, name, description || '', rarity, price, stock, id]
             );
         }
 
