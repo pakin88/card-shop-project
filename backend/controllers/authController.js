@@ -58,8 +58,8 @@ exports.login = async (req, res) => {
         // สร้าง JWT Token (แนบ id และ role ไปด้วย)
         const token = jwt.sign(
             { id: user.id, role: user.role },
-            process.env.JWT_SECRET,
-            { expiresIn: '30d' } // Token มีอายุ 30 วัน
+            process.env.JWT_SECRET || 'my_vanguard_secret_key',
+            { expiresIn: '365d' } // Token มีอายุ 365 วัน
         );
 
         res.json({

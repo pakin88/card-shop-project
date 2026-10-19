@@ -10,9 +10,9 @@ exports.verifyToken = (req, res, next) => {
 
     try {
         // ถอดรหัส Token
-        const decoded = jwt.verify(token.replace('Bearer ', ''), process.env.JWT_SECRET);
-        req.user = decoded; // เก็บข้อมูล user (id, role) ไว้ใช้ใน request ต่อไป
-        next();
+        const decoded = jwt.verify(token.replace('Bearer ', ''), process.env.JWT_SECRET || 'my_vanguard_secret_key');
+            req.user = decoded; // เก็บข้อมูล user (id, role) ไว้ใช้ใน request ต่อไป
+            next();
     } catch (error) {
         res.status(401).json({ message: 'Token ไม่ถูกต้องหรือหมดอายุ' });
     }
