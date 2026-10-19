@@ -15,6 +15,11 @@ const proceedToCheckout = () => {
     router.push('/checkout'); // <-- เปลี่ยนจาก alert เป็นบรรทัดนี้
   }
 };
+const getImageUrl = (img) => {
+  if (!img) return '';
+  if (img.startsWith('data:image') || img.startsWith('http')) return img;
+  return `https://card-shop-project.onrender.com/uploads/${img.replace(/^\/?uploads[\/\\]/, '')}`;
+};
 </script>
 
 <template>
@@ -36,7 +41,7 @@ const proceedToCheckout = () => {
           
           <img 
             v-if="item.image_url" 
-            :src="'[https://card-shop-project.onrender.com](https://card-shop-project.onrender.com)/uploads/products/' + item.image_url" 
+            :src="getImageUrl(item.image_url)" 
             class="w-20 h-24 object-cover rounded border"
           />
           <div v-else class="w-20 h-24 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-400">
