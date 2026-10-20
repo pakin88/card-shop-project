@@ -13,7 +13,7 @@ const route = useRoute();
 const API_URL = 'https://card-shop-project.onrender.com';
 
 // เปลี่ยนลิงก์รูปแบนเนอร์ปกอนิเมะ/โลโก้ตรงนี้ได้ตามต้องการเลยครับ
-const BANNER_IMAGE = 'https://images.unsplash.com/photo-1614680376593-902f74cf0d41?q=80&w=1600&auto=format&fit=crop';
+const BANNER_IMAGE = 'https://preview.redd.it/cardfight-vanguard-divinez-wallpapers-gdrive-link-for-hq-v0-4dxrl7dpjfgd1.jpg?width=1080&crop=smart&auto=webp&s=015997f07cfb72c827c5227d7deb320935a023ac';
 
 const products = ref([]);
 const loading = ref(true);
