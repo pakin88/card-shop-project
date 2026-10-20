@@ -2,11 +2,11 @@
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { useAuthStore } from '../stores/auth';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 
 const authStore = useAuthStore();
 const router = useRouter();
-
+const route = useRoute();
 const API_URL = 'https://card-shop-project.onrender.com';
 
 const products = ref([]);
@@ -36,6 +36,14 @@ const fetchProducts = async () => {
   try {
     const res = await axios.get(`${API_URL}/api/products`);
     products.value = res.data;
+
+    // ถ้ากดปุ่ม "แก้ไขการ์ด" มาจากหน้าแรก ให้เปิดหน้าต่างแก้ไขของการ์ดใบนั้นทันที
+    if (route.query.edit) {
+      const targetProduct = products.value.find(p => p.id === Number(route.query.edit));
+      if (targetProduct) {
+        openEditModal(targetProduct);
+      }
+    }
   } catch (error) {
     console.error(error);
     alert('ไม่สามารถโหลดข้อมูลสินค้าได้');
@@ -43,7 +51,6 @@ const fetchProducts = async () => {
     loading.value = false;
   }
 };
-
 // แปลงลิงก์รูปภาพให้แสดงผลได้ทั้ง Base64 และไฟล์ทั่วไป
 const getImageUrl = (img) => {
   if (!img) return '';
@@ -245,7 +252,14 @@ onMounted(() => {
               <input type="number" v-model="formData.stock" class="input input-bordered w-full" required />
             </div>
           </div>
-
+<div class="form-control">
+            <label class="label py-1"><span class="label-text">รายละเอียดการ์ด / ความสามารถ (แสดงเมื่อคลิกดูการ์ด)</span></label>
+            <textarea 
+              v-model="formData.description" 
+              class="textarea textarea-bordered h-20 w-full" 
+              placeholder="เช่น เกรด 3 / ทวินไดรฟ์ / ความสามารถ..."
+            ></textarea>
+          </div>
           <div class="form-control">
             <label class="label py-1"><span class="label-text">รูปภาพการ์ด</span></label>
             <input type="file" @change="handleFileChange" accept="image/*" class="file-input file-input-bordered w-full" />
