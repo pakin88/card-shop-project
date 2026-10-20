@@ -121,39 +121,15 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- 2. แถบจุดเด่นร้านค้า (Trust Badges) -->
-    <div class="max-w-7xl mx-auto px-6 -mt-6 relative z-20">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-base-100 p-4 rounded-2xl shadow-lg border border-base-300">
-        <div class="flex items-center gap-3 px-3 py-1">
-          <div class="text-2xl">🛡️</div>
-          <div>
-            <h3 class="font-bold text-sm">รับประกันการ์ดแท้ 100%</h3>
-            <p class="text-xs text-gray-400">คัดสภาพ Mint / Near Mint ทุกใบ</p>
-          </div>
-        </div>
-        <div class="flex items-center gap-3 px-3 py-1 border-t md:border-t-0 md:border-l border-base-200 pt-2 md:pt-1">
-          <div class="text-2xl">📦</div>
-          <div>
-            <h3 class="font-bold text-sm">แพ็คดามการ์ดกันงออย่างดี</h3>
-            <p class="text-xs text-gray-400">ใส่ซองใส + ดามเฟรม + ห่อบับเบิ้ลหนา</p>
-          </div>
-        </div>
-        <div class="flex items-center gap-3 px-3 py-1 border-t md:border-t-0 md:border-l border-base-200 pt-2 md:pt-1">
-          <div class="text-2xl">⚡</div>
-          <div>
-            <h3 class="font-bold text-sm">จัดส่งไว เช็คเลขพัสดุได้</h3>
-            <p class="text-xs text-gray-400">รองรับสแกน QR, โอนบัญชี และเก็บปลายทาง</p>
-          </div>
-        </div>
-      </div>
-    </div>
+
+ 
 
     <!-- 3. ส่วนแสดงรายการสินค้าล่าสุด + ตัวค้นหา -->
     <div id="latest-products" class="p-6 max-w-7xl mx-auto mt-6">
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b border-base-300 pb-4">
         <div>
           <h2 class="text-2xl md:text-3xl font-bold flex items-center gap-2">
-            <span>🔥 {{ route.query.category ? `หมวดหมู่: ${route.query.category}` : 'รายการสินค้าการ์ดล่าสุด' }}</span>
+            <span>{{ route.query.category ? `หมวดหมู่: ${route.query.category}` : 'รายการสินค้าการ์ดล่าสุด' }}</span>
             <span class="badge badge-neutral text-xs">{{ filteredProducts.length }} รายการ</span>
           </h2>
           <p class="text-sm text-gray-400 mt-1">คลิกที่รูปการ์ดเพื่อดูภาพขนาดใหญ่และอ่านเอฟเฟกต์ความสามารถ</p>
@@ -174,7 +150,7 @@ onMounted(() => {
         <input 
           type="text" 
           v-model="searchQuery" 
-          placeholder="🔍 ค้นหาชื่อการ์ด..." 
+          placeholder="ค้นหาชื่อการ์ด..." 
           class="input input-bordered w-full sm:flex-1"
         />
         <select v-model="selectedRarity" class="select select-bordered w-full sm:w-48">
