@@ -123,7 +123,7 @@ const handleLogout = () => {
       <div class="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-3 gap-8">
         <!-- คอลัมน์ 1: เกี่ยวกับร้าน -->
         <div>
-          <h3 class="text-xl font-extrabold text-primary mb-3">⚔️ Vanguard Shop</h3>
+          <h3 class="text-xl font-extrabold text-primary mb-3">Vanguard Shop</h3>
           <p class="text-sm text-gray-400 leading-relaxed">
             ศูนย์รวมการ์ดไฟท์!! แวนการ์ด แยกใบและจัดเด็ค ทั้งฟอยล์ RRR, SP, SEC ครบทุก Format (D ไทย / D ญี่ปุ่น / Premium) การันตีการ์ดแท้ แพ็คดามการ์ดอย่างดีทุกออเดอร์
           </p>
