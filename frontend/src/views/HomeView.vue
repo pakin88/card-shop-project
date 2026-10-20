@@ -12,7 +12,7 @@ const route = useRoute();
 
 const API_URL = 'https://card-shop-project.onrender.com';
 
-const BANNER_IMAGE = 'https://images.unsplash.com/photo-1614680376593-902f74cf0d41?q=80&w=1600&auto=format&fit=crop';
+const BANNER_IMAGE = 'https://i.redd.it/4dxrl7dpjfgd1.jpg';
 
 const products = ref([]);
 const loading = ref(true);
