@@ -36,7 +36,7 @@ const handleLogout = () => {
       <!-- ฝั่งซ้าย: โลโก้ร้าน + หมวดหมู่ Format แวนการ์ด -->
       <div class="flex items-center flex-wrap gap-1 md:gap-2">
         <button @click="selectFormat(null)" class="btn btn-ghost text-xl font-extrabold text-primary px-2">
-          Vanguard Shop
+     <img src="https://banner2.cleanpng.com/20180410/kge/avgwy9vcl.webp" alt="Vanguard Shop Logo" class="h-8 w-auto" />
         </button>
 
         <div class="divider divider-horizontal mx-0 hidden md:flex"></div>
