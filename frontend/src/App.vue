@@ -46,7 +46,7 @@ const handleLogout = () => {
           class="btn btn-xs sm:btn-sm"
           :class="!route.query.category && route.path === '/' ? 'btn-primary text-white' : 'btn-ghost'"
         >
-          ทั้งหมด
+          หน้าแรก
         </button>
 
         <button 

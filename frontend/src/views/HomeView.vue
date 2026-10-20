@@ -151,11 +151,9 @@ onMounted(() => {
         :style="`background-image: linear-gradient(to bottom, rgba(15, 23, 42, 0.45), rgba(15, 23, 42, 0.90)), url('${BANNER_IMAGE}');`"
       >
         <div class="text-center px-4 max-w-3xl z-10 mt-6">
-          <span class="badge badge-primary badge-outline bg-base-100/60 backdrop-blur-sm mb-3 px-4 py-3 font-semibold tracking-wider">
-            CARDFIGHT!! VANGUARD OFFICIAL SHOP
-          </span>
+
           <h1 class="text-4xl md:text-6xl font-extrabold text-white tracking-tight mb-4 drop-shadow-lg">
-            STAND UP, <span class="text-primary">VANGUARD!</span>
+                        CARDFIGHT!! VANGUARD OFFICIAL SHOP
           </h1>
           <p class="text-gray-200 text-sm md:text-lg mb-6 max-w-2xl mx-auto drop-shadow">
             แหล่งรวมสินค้าแวนการ์ดครบวงจร ทั้งการ์ดแยกใบ บ็อกซ์บูสเตอร์ เด็คพร้อมเล่น และอุปกรณ์เสริม ครบทุก Format ทั้ง D-Standard ไทย, ญี่ปุ่น และ Premium
@@ -176,23 +174,7 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- 2. แถบจุดเด่นร้านค้า -->
-    <div class="max-w-7xl mx-auto px-6 -mt-6 relative z-20">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-base-100 p-4 rounded-2xl shadow-lg border border-base-300">
-        <div class="px-3 py-1">
-          <h3 class="font-bold text-sm">รับประกันสินค้าแท้ 100%</h3>
-          <p class="text-xs text-gray-400">คัดสภาพสินค้าคุณภาพทุกชิ้นก่อนจัดส่ง</p>
-        </div>
-        <div class="px-3 py-1 border-t md:border-t-0 md:border-l border-base-200 pt-2 md:pt-1">
-          <h3 class="font-bold text-sm">แพ็คสินค้ากันกระแทกอย่างดี</h3>
-          <p class="text-xs text-gray-400">ดามป้องกันการงอและห่อบับเบิ้ลหนาทุกออเดอร์</p>
-        </div>
-        <div class="px-3 py-1 border-t md:border-t-0 md:border-l border-base-200 pt-2 md:pt-1">
-          <h3 class="font-bold text-sm">จัดส่งไว เช็คเลขพัสดุได้</h3>
-          <p class="text-xs text-gray-400">รองรับสแกน QR, โอนบัญชี และเก็บปลายทาง</p>
-        </div>
-      </div>
-    </div>
+ 
 
     <!-- 3. ส่วนแสดงรายการสินค้าล่าสุด + ตัวค้นหา -->
     <div id="latest-products" class="p-6 max-w-7xl mx-auto mt-6">
