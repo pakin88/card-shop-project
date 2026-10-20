@@ -2,13 +2,13 @@ const mysql = require('mysql2');
 require('dotenv').config();
 
 const pool = mysql.createPool({
-    host: process.env.DB_HOST || 'datacardshop-pakinwilamas-8737.l.aivencloud.com',
-    port: process.env.DB_PORT || 22852, // <-- เปลี่ยนเลข 12345 เป็น Port ของ Aiven
-    user: process.env.DB_USER || 'avnadmin',
-    password: process.env.DB_PASSWORD || 'AVNS_QUYt3nMpBF7QH7zzgGh',
-    database: process.env.DB_NAME || 'defaultdb',
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
     ssl: {
-        rejectUnauthorized: false // <-- จำเป็นต้องใส่สำหรับ Aiven
+        rejectUnauthorized: false
     },
     waitForConnections: true,
     connectionLimit: 10,
