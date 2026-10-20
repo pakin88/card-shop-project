@@ -13,7 +13,7 @@ const route = useRoute();
 const API_URL = 'https://card-shop-project.onrender.com';
 
 // เปลี่ยนลิงก์รูปแบนเนอร์ปกอนิเมะ/โลโก้ตรงนี้ได้ตามต้องการเลยครับ
-const BANNER_IMAGE = 'https://preview.redd.it/cardfight-vanguard-divinez-wallpapers-gdrive-link-for-hq-v0-4dxrl7dpjfgd1.jpg?width=1080&crop=smart&auto=webp&s=015997f07cfb72c827c5227d7deb320935a023ac';
+const BANNER_IMAGE = 'https://drive.google.com/file/d/1-OLfpufdwk25De19LgJdBptaFz-FVdeN/view?usp=sharing';
 
 const products = ref([]);
 const loading = ref(true);
@@ -89,30 +89,31 @@ onMounted(() => {
 
 <template>
   <div>
+
     <!-- 1. Hero Banner (รูปปกอนิเมะ / โลโก้ใหญ่ด้านบนสุด) -->
     <div class="relative bg-base-300 overflow-hidden border-b border-base-300">
+      <!-- เปลี่ยน bg-center เป็น bg-top (หรือปรับเป็น bg-[center_20%] ได้ตามต้องการ) และเพิ่มความสูงเป็น md:h-[460px] -->
       <div 
-        class="h-[320px] md:h-[400px] w-full bg-cover bg-center relative flex items-center justify-center"
-        :style="`background-image: linear-gradient(to bottom, rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.92)), url('${BANNER_IMAGE}');`"
+        class="h-[340px] md:h-[460px] w-full bg-cover bg-top relative flex items-center justify-center"
+        :style="`background-image: linear-gradient(to bottom, rgba(15, 23, 42, 0.45), rgba(15, 23, 42, 0.90)), url('${BANNER_IMAGE}');`"
       >
-        <div class="text-center px-4 max-w-3xl z-10">
-          <span class="badge badge-primary badge-outline mb-3 px-4 py-3 font-semibold tracking-wider">
-            CARDFIGHT!! VANGUARD OFFICIAL SHOP
-          </span>
+        <div class="text-center px-4 max-w-3xl z-10 mt-6">
+
           <h1 class="text-4xl md:text-6xl font-extrabold text-white tracking-tight mb-4 drop-shadow-lg">
-            STAND UP, <span class="text-primary">VANGUARD!</span>
+          CARDFIGHT!! VANGUARD OFFICIAL SHOP
           </h1>
-          <p class="text-gray-300 text-sm md:text-lg mb-6 max-w-2xl mx-auto">
+          <p class="text-gray-200 text-sm md:text-lg mb-6 max-w-2xl mx-auto drop-shadow">
             แหล่งรวมการ์ดแวนการ์ดแยกใบระดับ RRR, SP, SEC และของเสริมจัดเด็คครบทุก Format ทั้ง D-Standard ภาษาไทย, ญี่ปุ่น และ Premium
           </p>
           <div class="flex justify-center gap-3">
-            <button @click="scrollToProducts" class="btn btn-primary text-white px-6">
+            <button @click="scrollToProducts" class="btn btn-primary text-white px-6 shadow-lg">
               เลือกดูการ์ดล่าสุด ↓
             </button>
+            <!-- ปรับสีปุ่มของ Admin ให้สว่างชัดเจน ไม่จมพื้นหลัง -->
             <button 
               v-if="authStore.isAdmin" 
               @click="goToAddProduct" 
-              class="btn btn-accent text-black font-bold"
+              class="btn btn-warning text-black font-bold shadow-lg"
             >
               + เพิ่มการ์ดลงหน้าร้าน
             </button>
