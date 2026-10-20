@@ -13,7 +13,7 @@ const route = useRoute();
 const API_URL = 'https://card-shop-project.onrender.com';
 
 // เปลี่ยนลิงก์รูปแบนเนอร์ปกอนิเมะ/โลโก้ตรงนี้ได้ตามต้องการเลยครับ
-const BANNER_IMAGE = 'https://drive.google.com/file/d/1-OLfpufdwk25De19LgJdBptaFz-FVdeN/view?usp=sharing';
+const BANNER_IMAGE = 'https://i.redd.it/4dxrl7dpjfgd1.jpg';
 
 const products = ref([]);
 const loading = ref(true);
