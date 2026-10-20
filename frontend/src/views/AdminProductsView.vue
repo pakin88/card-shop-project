@@ -174,26 +174,24 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="p-6 max-w-6xl mx-auto text-gray-900">
+  <div class="p-6 max-w-6xl mx-auto">
     <div class="flex justify-between items-center mb-6">
-      <h1 class="text-3xl font-bold text-black">จัดการคลังการ์ด (Admin)</h1>
-      <button @click="openAddModal" class="btn bg-black text-white hover:bg-gray-800 border-black">
-        + เพิ่มการ์ดใบใหม่
-      </button>
+      <h1 class="text-3xl font-bold">จัดการคลังการ์ด (Admin)</h1>
+      <button @click="openAddModal" class="btn btn-primary text-white">+ เพิ่มการ์ดใบใหม่</button>
     </div>
 
     <div v-if="loading" class="text-center py-10">
-      <span class="loading loading-spinner loading-lg text-black"></span>
-      <p class="mt-2 text-gray-600">กำลังโหลดคลังการ์ด...</p>
+      <span class="loading loading-spinner loading-lg text-primary"></span>
+      <p class="mt-2">กำลังโหลดคลังการ์ด...</p>
     </div>
 
-    <div v-else class="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-200">
+    <div v-else class="overflow-x-auto bg-base-100 rounded-xl shadow border border-base-300">
       <table class="table w-full">
         <thead>
-          <tr class="bg-gray-100 text-gray-800 text-sm border-b border-gray-200">
+          <tr class="bg-base-200 text-sm">
             <th>รูปภาพ</th>
             <th>ชื่อการ์ด</th>
-            <th>หมวดหมู่ Format</th>
+            <th>หมวดหมู่</th>
             <th>ความแรร์</th>
             <th>ราคา</th>
             <th>สต็อก</th>
@@ -201,29 +199,25 @@ onMounted(async () => {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="product in products" :key="product.id" class="hover:bg-gray-50 border-b border-gray-100">
+          <tr v-for="product in products" :key="product.id" class="hover">
             <td>
-              <div class="w-16 h-20 bg-gray-50 rounded flex items-center justify-center overflow-hidden border border-gray-200">
-                <img v-if="product.image_url" :src="getImageUrl(product.image_url)" class="w-full h-full object-contain" />
+              <div class="w-16 h-20 bg-base-200 rounded flex items-center justify-center overflow-hidden border">
+                <img v-if="product.image_url" :src="getImageUrl(product.image_url)" class="w-full h-full object-cover" />
                 <span v-else class="text-xs text-gray-400">ไม่มีรูป</span>
               </div>
             </td>
-            <td class="font-bold text-black">{{ product.name }}</td>
-            <td class="text-gray-700">{{ product.category_name || product.category }}</td>
-            <td><span class="badge badge-outline border-gray-400 text-gray-800">{{ product.rarity }}</span></td>
-            <td class="text-black font-extrabold">฿{{ Number(product.price).toLocaleString() }}</td>
+            <td class="font-bold">{{ product.name }}</td>
+            <td>{{ product.category }}</td>
+            <td><span class="badge badge-outline">{{ product.rarity }}</span></td>
+            <td class="text-primary font-bold">฿{{ Number(product.price).toLocaleString() }}</td>
             <td>
-              <span :class="product.stock > 0 ? 'text-gray-800 font-medium' : 'text-red-600 font-bold'">
+              <span :class="product.stock > 0 ? 'text-success' : 'text-error font-bold'">
                 {{ product.stock }} ใบ
               </span>
             </td>
             <td class="text-center space-x-2">
-              <button @click="openEditModal(product)" class="btn btn-xs bg-black text-white hover:bg-gray-800 border-black">
-                แก้ไข / เพิ่มรูป
-              </button>
-              <button @click="deleteProduct(product.id, product.name)" class="btn btn-xs btn-outline border-gray-400 text-gray-700 hover:bg-red-600 hover:text-white hover:border-red-600">
-                ลบ
-              </button>
+              <button @click="openEditModal(product)" class="btn btn-info btn-xs text-white">แก้ไข / เพิ่มรูป</button>
+              <button @click="deleteProduct(product.id, product.name)" class="btn btn-error btn-xs text-white">ลบ</button>
             </td>
           </tr>
         </tbody>
@@ -231,66 +225,68 @@ onMounted(async () => {
     </div>
 
     <!-- Modal ฟอร์มเพิ่ม/แก้ไขการ์ด -->
-    <div v-if="showModal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-      <div class="bg-white text-gray-900 p-6 rounded-xl max-w-lg w-full shadow-2xl border border-gray-200 max-h-[90vh] overflow-y-auto">
-        <h2 class="text-2xl font-bold text-black mb-4">
+    <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+      <div class="bg-base-100 p-6 rounded-xl max-w-lg w-full shadow-xl border border-base-300 max-h-[90vh] overflow-y-auto">
+        <h2 class="text-2xl font-bold mb-4">
           {{ isEditMode ? 'แก้ไขข้อมูลการ์ด' : 'เพิ่มการ์ดใบใหม่' }}
         </h2>
 
         <form @submit.prevent="saveProduct" class="space-y-3">
           <div class="form-control">
-            <label class="label py-1"><span class="label-text text-gray-800 font-semibold">ชื่อการ์ด *</span></label>
-            <input type="text" v-model="formData.name" class="input input-bordered bg-white border-gray-300 text-black w-full" required />
+            <label class="label py-1"><span class="label-text">ชื่อการ์ด *</span></label>
+            <input type="text" v-model="formData.name" class="input input-bordered w-full" required />
           </div>
 
           <div class="grid grid-cols-2 gap-3">
             <div class="form-control">
-              <label class="label py-1"><span class="label-text text-gray-800 font-semibold">หมวดหมู่ Format *</span></label>
-              <select v-model="formData.category" class="select select-bordered bg-white border-gray-300 text-black w-full" required>
+              <label class="label py-1"><span class="label-text">หมวดหมู่ *</span></label>
+              <div class="form-control">
+              <label class="label py-1"><span class="label-text">หมวดหมู่ Format *</span></label>
+              <select v-model="formData.category" class="select select-bordered w-full" required>
                 <option value="แวนการ์ด D ไทย">แวนการ์ด D ไทย</option>
                 <option value="แวนการ์ด D JP">แวนการ์ด D JP</option>
                 <option value="แวนการ์ด Premium">แวนการ์ด Premium</option>
                 <option value="อุปกรณ์เสริมการ์ด">อุปกรณ์เสริมการ์ด</option>
               </select>
             </div>
+            </div>
             <div class="form-control">
-              <label class="label py-1"><span class="label-text text-gray-800 font-semibold">ระดับความแรร์ (Rarity) *</span></label>
-              <input type="text" v-model="formData.rarity" placeholder="เช่น RRR, SP, RR" class="input input-bordered bg-white border-gray-300 text-black w-full" required />
+              <label class="label py-1"><span class="label-text">ระดับความแรร์ (Rarity) *</span></label>
+              <input type="text" v-model="formData.rarity" placeholder="เช่น RRR, SP, RR" class="input input-bordered w-full" required />
             </div>
           </div>
 
           <div class="grid grid-cols-2 gap-3">
             <div class="form-control">
-              <label class="label py-1"><span class="label-text text-gray-800 font-semibold">ราคา (บาท) *</span></label>
-              <input type="number" step="0.01" v-model="formData.price" class="input input-bordered bg-white border-gray-300 text-black w-full" required />
+              <label class="label py-1"><span class="label-text">ราคา (บาท) *</span></label>
+              <input type="number" step="0.01" v-model="formData.price" class="input input-bordered w-full" required />
             </div>
             <div class="form-control">
-              <label class="label py-1"><span class="label-text text-gray-800 font-semibold">จำนวนในคลัง (ใบ) *</span></label>
-              <input type="number" v-model="formData.stock" class="input input-bordered bg-white border-gray-300 text-black w-full" required />
+              <label class="label py-1"><span class="label-text">จำนวนในคลัง (ใบ) *</span></label>
+              <input type="number" v-model="formData.stock" class="input input-bordered w-full" required />
             </div>
           </div>
-
-          <div class="form-control">
-            <label class="label py-1"><span class="label-text text-gray-800 font-semibold">รายละเอียดการ์ด / ความสามารถ</span></label>
+<div class="form-control">
+            <label class="label py-1"><span class="label-text">รายละเอียดการ์ด / ความสามารถ (แสดงเมื่อคลิกดูการ์ด)</span></label>
             <textarea 
               v-model="formData.description" 
-              class="textarea textarea-bordered bg-white border-gray-300 text-black h-20 w-full" 
+              class="textarea textarea-bordered h-20 w-full" 
               placeholder="เช่น เกรด 3 / ทวินไดรฟ์ / ความสามารถ..."
             ></textarea>
           </div>
-
           <div class="form-control">
-            <label class="label py-1"><span class="label-text text-gray-800 font-semibold">รูปภาพการ์ด</span></label>
-            <input type="file" @change="handleFileChange" accept="image/*" class="file-input file-input-bordered bg-white border-gray-300 text-black w-full" />
+            <label class="label py-1"><span class="label-text">รูปภาพการ์ด</span></label>
+            <input type="file" @change="handleFileChange" accept="image/*" class="file-input file-input-bordered w-full" />
             
-            <div v-if="imagePreview" class="mt-3 flex justify-center bg-gray-50 p-2 rounded border border-gray-200">
-              <img :src="imagePreview" class="h-40 object-contain rounded" />
+            <!-- แสดงรูปตัวอย่าง -->
+            <div v-if="imagePreview" class="mt-3 flex justify-center">
+              <img :src="imagePreview" class="h-40 object-contain rounded border p-1" />
             </div>
           </div>
 
-          <div class="flex justify-end space-x-2 pt-4 border-t border-gray-200 mt-4">
-            <button type="button" @click="closeModal" class="btn btn-ghost text-gray-700">ยกเลิก</button>
-            <button type="submit" class="btn bg-black text-white hover:bg-gray-800 border-black" :disabled="isSubmitting">
+          <div class="flex justify-end space-x-2 pt-4 border-t border-base-200 mt-4">
+            <button type="button" @click="showModal = false" class="btn btn-ghost">ยกเลิก</button>
+            <button type="submit" class="btn btn-primary text-white" :disabled="isSubmitting">
               <span v-if="isSubmitting" class="loading loading-spinner"></span>
               บันทึกข้อมูล
             </button>
