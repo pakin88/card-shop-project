@@ -38,11 +38,13 @@ const fetchProducts = async () => {
     products.value = res.data;
 
     // ถ้ากดปุ่ม "แก้ไขการ์ด" มาจากหน้าแรก ให้เปิดหน้าต่างแก้ไขของการ์ดใบนั้นทันที
-    if (route.query.edit) {
+if (route.query.edit) {
       const targetProduct = products.value.find(p => p.id === Number(route.query.edit));
-      if (targetProduct) {
-        openEditModal(targetProduct);
-      }
+      if (targetProduct) openEditModal(targetProduct);
+    } 
+    // ถ้ากดปุ่ม "+ เพิ่มการ์ดใบใหม่" มาจากหน้าแรก
+    else if (route.query.action === 'add') {
+      openAddModal();
     }
   } catch (error) {
     console.error(error);
@@ -234,7 +236,15 @@ onMounted(() => {
           <div class="grid grid-cols-2 gap-3">
             <div class="form-control">
               <label class="label py-1"><span class="label-text">หมวดหมู่ *</span></label>
-              <input type="text" v-model="formData.category" class="input input-bordered w-full" required />
+              <div class="form-control">
+              <label class="label py-1"><span class="label-text">หมวดหมู่ Format *</span></label>
+              <select v-model="formData.category" class="select select-bordered w-full" required>
+                <option value="แวนการ์ด D ไทย">แวนการ์ด D ไทย</option>
+                <option value="แวนการ์ด D JP">แวนการ์ด D JP</option>
+                <option value="แวนการ์ด Premium">แวนการ์ด Premium</option>
+                <option value="อุปกรณ์เสริมการ์ด">อุปกรณ์เสริมการ์ด</option>
+              </select>
+            </div>
             </div>
             <div class="form-control">
               <label class="label py-1"><span class="label-text">ระดับความแรร์ (Rarity) *</span></label>
