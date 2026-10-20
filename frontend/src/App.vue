@@ -8,7 +8,6 @@ const cartStore = useCartStore();
 const router = useRouter();
 const route = useRoute();
 
-// หมวดหมู่ Format บน Navbar ฝั่งซ้าย
 const vanguardFormats = [
   'แวนการ์ด D ไทย',
   'แวนการ์ด D JP',
@@ -37,12 +36,11 @@ const handleLogout = () => {
       <!-- ฝั่งซ้าย: โลโก้ร้าน + หมวดหมู่ Format แวนการ์ด -->
       <div class="flex items-center flex-wrap gap-1 md:gap-2">
         <button @click="selectFormat(null)" class="btn btn-ghost text-xl font-extrabold text-primary px-2">
-           Vanguard Shop
+          Vanguard Shop
         </button>
 
         <div class="divider divider-horizontal mx-0 hidden md:flex"></div>
 
-        <!-- ปุ่มเลือก Format -->
         <button 
           @click="selectFormat(null)" 
           class="btn btn-xs sm:btn-sm"
@@ -113,7 +111,7 @@ const handleLogout = () => {
       </div>
     </div>
 
-    <!-- เนื้อหาของแต่ละหน้า (ดัน Footer ให้อยู่ล่างสุดเสมอด้วย flex-grow) -->
+    <!-- เนื้อหาของแต่ละหน้า -->
     <main class="flex-grow">
       <router-view />
     </main>
@@ -121,25 +119,22 @@ const handleLogout = () => {
     <!-- Footer ด้านล่างสำหรับติดต่อเพจร้าน -->
     <footer class="bg-base-300 text-base-content border-t border-base-100 mt-16">
       <div class="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-3 gap-8">
-        <!-- คอลัมน์ 1: เกี่ยวกับร้าน -->
         <div>
-          <h3 class="text-xl font-extrabold text-primary mb-3">⚔️ Vanguard Shop</h3>
+          <h3 class="text-xl font-extrabold text-primary mb-3">Vanguard Shop</h3>
           <p class="text-sm text-gray-400 leading-relaxed">
-            ศูนย์รวมการ์ดไฟท์!! แวนการ์ด แยกใบและจัดเด็ค ทั้งฟอยล์ RRR, SP, SEC ครบทุก Format (D ไทย / D ญี่ปุ่น / Premium) การันตีการ์ดแท้ แพ็คดามการ์ดอย่างดีทุกออเดอร์
+            ศูนย์รวมสินค้าการ์ดไฟท์ แวนการ์ด ทั้งการ์ดแยกใบ บ็อกซ์บูสเตอร์ เด็คพร้อมเล่น และอุปกรณ์เสริม ครบทุก Format (D ไทย / D ญี่ปุ่น / Premium) การันตีของแท้ แพ็คกันกระแทกอย่างดีทุกออเดอร์
           </p>
         </div>
 
-        <!-- คอลัมน์ 2: หมวดหมู่สินค้า -->
         <div>
-          <h4 class="font-bold text-base mb-3">หมวดหมู่ Format การ์ด</h4>
+          <h4 class="font-bold text-base mb-3">หมวดหมู่ Format สินค้า</h4>
           <ul class="space-y-2 text-sm text-gray-400">
-            <li><button @click="selectFormat('แวนการ์ด D ไทย')" class="hover:text-primary transition-colors">• แวนการ์ด D ไทย (Vanguard D TH)</button></li>
-            <li><button @click="selectFormat('แวนการ์ด D JP')" class="hover:text-primary transition-colors">• แวนการ์ด D JP (Vanguard D Japan)</button></li>
-            <li><button @click="selectFormat('แวนการ์ด Premium')" class="hover:text-primary transition-colors">• แวนการ์ด Premium / V-Series</button></li>
+            <li><button @click="selectFormat('แวนการ์ด D ไทย')" class="hover:text-primary transition-colors">- แวนการ์ด D ไทย (Vanguard D TH)</button></li>
+            <li><button @click="selectFormat('แวนการ์ด D JP')" class="hover:text-primary transition-colors">- แวนการ์ด D JP (Vanguard D Japan)</button></li>
+            <li><button @click="selectFormat('แวนการ์ด Premium')" class="hover:text-primary transition-colors">- แวนการ์ด Premium / V-Series</button></li>
           </ul>
         </div>
 
-        <!-- คอลัมน์ 3: ช่องทางติดต่อเพจร้าน -->
         <div>
           <h4 class="font-bold text-base mb-3">ติดต่อเพจร้าน / สอบถาม</h4>
           <ul class="space-y-2 text-sm text-gray-400">

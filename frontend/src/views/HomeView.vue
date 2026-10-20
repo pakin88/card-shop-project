@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import axios from 'axios';
 import { useCartStore } from '../stores/cart';
 import { useAuthStore } from '../stores/auth';
@@ -12,17 +12,71 @@ const route = useRoute();
 
 const API_URL = 'https://card-shop-project.onrender.com';
 
-// เปลี่ยนลิงก์รูปแบนเนอร์ปกอนิเมะ/โลโก้ตรงนี้ได้ตามต้องการเลยครับ
-const BANNER_IMAGE = 'https://i.redd.it/4dxrl7dpjfgd1.jpg';
+const BANNER_IMAGE = 'https://images.unsplash.com/photo-1614680376593-902f74cf0d41?q=80&w=1600&auto=format&fit=crop';
 
 const products = ref([]);
 const loading = ref(true);
 const error = ref(null);
 const selectedProduct = ref(null);
 
-// ตัวแปรสำหรับค้นหาและกรองการ์ด
+const nonSingleTypes = [
+  'บ็อกซ์ / ซองเสริม',
+  'เซ็ท / เด็คพร้อมเล่น',
+  'อุปกรณ์เสริม'
+];
+
+const rarityOptions = [
+  'RRR', 'RR', 'R', 'C', 'OR', 'SP', 'SEC', 'DSR', 'FFR', 'FR', 'SR', 'PR'
+];
+
+// ตัวแปรสำหรับค้นหาและกรองสินค้า
 const searchQuery = ref('');
+const selectedFormat = ref(route.query.category || '');
+const selectedProductType = ref('');
 const selectedRarity = ref('');
+
+// ตรวจสอบประเภทสินค้า
+const getProductType = (product) => {
+  if (!product.rarity || product.rarity === '-') return 'อุปกรณ์เสริม';
+  if (nonSingleTypes.includes(product.rarity)) return product.rarity;
+  return 'การ์ดแยกใบ';
+};
+
+// ดึงค่าความแรร์เฉพาะการ์ดแยกใบ
+const getProductRarity = (product) => {
+  if (getProductType(product) !== 'การ์ดแยกใบ') return null;
+  return product.rarity;
+};
+
+watch(
+  () => route.query.category,
+  (newCategory) => {
+    selectedFormat.value = newCategory || '';
+  }
+);
+
+// ถ้าเปลี่ยนประเภทสินค้าเป็นแบบอื่นที่ไม่ใช่การ์ดแยกใบ ให้ล้างตัวกรองความแรร์
+watch(selectedProductType, (newType) => {
+  if (newType && newType !== 'การ์ดแยกใบ') {
+    selectedRarity.value = '';
+  }
+});
+
+const handleFormatChange = () => {
+  if (selectedFormat.value) {
+    router.push({ path: '/', query: { category: selectedFormat.value } });
+  } else {
+    router.push({ path: '/' });
+  }
+};
+
+const clearFilters = () => {
+  searchQuery.value = '';
+  selectedFormat.value = '';
+  selectedProductType.value = '';
+  selectedRarity.value = '';
+  router.push({ path: '/' });
+};
 
 const fetchProducts = async () => {
   loading.value = true;
@@ -36,14 +90,18 @@ const fetchProducts = async () => {
   }
 };
 
-// กรองรายการการ์ดตามหมวดหมู่บน Navbar, ช่องค้นหา และระดับความแรร์
 const filteredProducts = computed(() => {
   return products.value.filter((product) => {
     const prodCategory = product.category_name || product.category || '';
-    const matchCategory = !route.query.category || prodCategory === route.query.category;
+    const prodType = getProductType(product);
+    const prodRarity = getProductRarity(product);
+
+    const matchCategory = !selectedFormat.value || prodCategory === selectedFormat.value;
+    const matchType = !selectedProductType.value || prodType === selectedProductType.value;
     const matchSearch = !searchQuery.value || product.name.toLowerCase().includes(searchQuery.value.toLowerCase());
-    const matchRarity = !selectedRarity.value || product.rarity === selectedRarity.value;
-    return matchCategory && matchSearch && matchRarity;
+    const matchRarity = !selectedRarity.value || prodRarity === selectedRarity.value;
+
+    return matchCategory && matchType && matchSearch && matchRarity;
   });
 });
 
@@ -53,28 +111,25 @@ const getImageUrl = (img) => {
   return `${API_URL}/uploads/${img.replace(/^\/?uploads[\/\\]/, '')}`;
 };
 
-// สำหรับ Admin: กดเพิ่มการ์ดใหม่จากหน้าแรก
 const goToAddProduct = () => {
   router.push({ path: '/admin/products', query: { action: 'add' } });
 };
 
-// สำหรับ Admin: กดแก้ไขการ์ดจากหน้าแรก
 const goToEditProduct = (productId) => {
   router.push({ path: '/admin/products', query: { edit: productId } });
 };
 
-// สำหรับ Admin: กดลบการ์ดจากหน้าแรกได้ทันที
 const deleteProductFromHome = async (id, name) => {
-  if (!confirm(`คุณต้องการลบการ์ด "${name}" ออกจากหน้าร้านใช่หรือไม่?`)) return;
+  if (!confirm(`คุณต้องการลบสินค้า "${name}" ออกจากหน้าร้านใช่หรือไม่?`)) return;
   try {
     await axios.delete(`${API_URL}/api/products/${id}`, {
       headers: { Authorization: `Bearer ${authStore.token}` }
     });
-    alert('ลบการ์ดสำเร็จ!');
+    alert('ลบสินค้าสำเร็จ!');
     if (selectedProduct.value?.id === id) selectedProduct.value = null;
     fetchProducts();
   } catch (err) {
-    alert(err.response?.data?.message || 'ไม่สามารถลบการ์ดนี้ได้ (อาจอยู่ในใบสั่งซื้อแล้ว)');
+    alert(err.response?.data?.message || 'ไม่สามารถลบสินค้านี้ได้ (อาจอยู่ในใบสั่งซื้อแล้ว)');
   }
 };
 
@@ -89,82 +144,123 @@ onMounted(() => {
 
 <template>
   <div>
-
-    <!-- 1. Hero Banner (รูปปกอนิเมะ / โลโก้ใหญ่ด้านบนสุด) -->
+    <!-- 1. Hero Banner -->
     <div class="relative bg-base-300 overflow-hidden border-b border-base-300">
-      <!-- เปลี่ยน bg-center เป็น bg-top (หรือปรับเป็น bg-[center_20%] ได้ตามต้องการ) และเพิ่มความสูงเป็น md:h-[460px] -->
       <div 
         class="h-[340px] md:h-[460px] w-full bg-cover bg-top relative flex items-center justify-center"
         :style="`background-image: linear-gradient(to bottom, rgba(15, 23, 42, 0.45), rgba(15, 23, 42, 0.90)), url('${BANNER_IMAGE}');`"
       >
         <div class="text-center px-4 max-w-3xl z-10 mt-6">
-
+          <span class="badge badge-primary badge-outline bg-base-100/60 backdrop-blur-sm mb-3 px-4 py-3 font-semibold tracking-wider">
+            CARDFIGHT!! VANGUARD OFFICIAL SHOP
+          </span>
           <h1 class="text-4xl md:text-6xl font-extrabold text-white tracking-tight mb-4 drop-shadow-lg">
-          CARDFIGHT!! VANGUARD OFFICIAL SHOP
+            STAND UP, <span class="text-primary">VANGUARD!</span>
           </h1>
           <p class="text-gray-200 text-sm md:text-lg mb-6 max-w-2xl mx-auto drop-shadow">
-            แหล่งรวมการ์ดแวนการ์ดแยกใบระดับ RRR, SP, SEC และของเสริมจัดเด็คครบทุก Format ทั้ง D-Standard ภาษาไทย, ญี่ปุ่น และ Premium
+            แหล่งรวมสินค้าแวนการ์ดครบวงจร ทั้งการ์ดแยกใบ บ็อกซ์บูสเตอร์ เด็คพร้อมเล่น และอุปกรณ์เสริม ครบทุก Format ทั้ง D-Standard ไทย, ญี่ปุ่น และ Premium
           </p>
           <div class="flex justify-center gap-3">
             <button @click="scrollToProducts" class="btn btn-primary text-white px-6 shadow-lg">
-              เลือกดูการ์ดล่าสุด ↓
+              เลือกดูสินค้าล่าสุด
             </button>
-            <!-- ปรับสีปุ่มของ Admin ให้สว่างชัดเจน ไม่จมพื้นหลัง -->
             <button 
               v-if="authStore.isAdmin" 
               @click="goToAddProduct" 
               class="btn btn-warning text-black font-bold shadow-lg"
             >
-              + เพิ่มการ์ดลงหน้าร้าน
+              + เพิ่มสินค้าลงหน้าร้าน
             </button>
           </div>
         </div>
       </div>
     </div>
 
-
- 
+    <!-- 2. แถบจุดเด่นร้านค้า -->
+    <div class="max-w-7xl mx-auto px-6 -mt-6 relative z-20">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-base-100 p-4 rounded-2xl shadow-lg border border-base-300">
+        <div class="px-3 py-1">
+          <h3 class="font-bold text-sm">รับประกันสินค้าแท้ 100%</h3>
+          <p class="text-xs text-gray-400">คัดสภาพสินค้าคุณภาพทุกชิ้นก่อนจัดส่ง</p>
+        </div>
+        <div class="px-3 py-1 border-t md:border-t-0 md:border-l border-base-200 pt-2 md:pt-1">
+          <h3 class="font-bold text-sm">แพ็คสินค้ากันกระแทกอย่างดี</h3>
+          <p class="text-xs text-gray-400">ดามป้องกันการงอและห่อบับเบิ้ลหนาทุกออเดอร์</p>
+        </div>
+        <div class="px-3 py-1 border-t md:border-t-0 md:border-l border-base-200 pt-2 md:pt-1">
+          <h3 class="font-bold text-sm">จัดส่งไว เช็คเลขพัสดุได้</h3>
+          <p class="text-xs text-gray-400">รองรับสแกน QR, โอนบัญชี และเก็บปลายทาง</p>
+        </div>
+      </div>
+    </div>
 
     <!-- 3. ส่วนแสดงรายการสินค้าล่าสุด + ตัวค้นหา -->
     <div id="latest-products" class="p-6 max-w-7xl mx-auto mt-6">
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b border-base-300 pb-4">
         <div>
           <h2 class="text-2xl md:text-3xl font-bold flex items-center gap-2">
-            <span>{{ route.query.category ? `หมวดหมู่: ${route.query.category}` : 'รายการสินค้าการ์ดล่าสุด' }}</span>
+            <span>{{ selectedFormat ? `หมวดหมู่: ${selectedFormat}` : 'รายการสินค้าล่าสุด' }}</span>
             <span class="badge badge-neutral text-xs">{{ filteredProducts.length }} รายการ</span>
           </h2>
-          <p class="text-sm text-gray-400 mt-1">คลิกที่รูปการ์ดเพื่อดูภาพขนาดใหญ่และอ่านเอฟเฟกต์ความสามารถ</p>
+          <p class="text-sm text-gray-400 mt-1">คลิกที่รูปสินค้าเพื่อดูภาพขนาดใหญ่และอ่านรายละเอียด</p>
         </div>
 
-        <!-- ปุ่มลัดให้ Admin เพิ่มการ์ดจากหน้านี้ได้ทันที -->
         <button 
           v-if="authStore.isAdmin" 
           @click="goToAddProduct" 
           class="btn btn-primary btn-sm text-white"
         >
-          + เพิ่มการ์ดใบใหม่
+          + เพิ่มสินค้าใหม่
         </button>
       </div>
 
-      <!-- แถบค้นหาชื่อการ์ด และกรองระดับความแรร์ -->
-      <div class="flex flex-col sm:flex-row gap-3 mb-8">
+      <!-- แถบค้นหาชื่อสินค้า + เลือก Format + เลือกประเภทสินค้า + เลือกระดับความแรร์ -->
+      <div class="flex flex-col lg:flex-row gap-3 mb-8">
         <input 
           type="text" 
           v-model="searchQuery" 
-          placeholder="ค้นหาชื่อการ์ด..." 
-          class="input input-bordered w-full sm:flex-1"
+          placeholder="ค้นหาชื่อสินค้า..." 
+          class="input input-bordered w-full lg:flex-1"
         />
-        <select v-model="selectedRarity" class="select select-bordered w-full sm:w-48">
-          <option value="">ความแรร์ทั้งหมด</option>
-          <option value="RRR">RRR</option>
-          <option value="RR">RR</option>
-          <option value="R">R</option>
-          <option value="Common">Common (C)</option>
-          <option value="SP">SP / SEC / DSR</option>
+
+        <!-- เลือก Format ข้างช่อง Search -->
+        <select 
+          v-model="selectedFormat" 
+          @change="handleFormatChange"
+          class="select select-bordered w-full lg:w-48"
+        >
+          <option value="">ทุกหมวดหมู่ Format</option>
+          <option value="แวนการ์ด D ไทย">แวนการ์ด D ไทย</option>
+          <option value="แวนการ์ด D JP">แวนการ์ด D JP</option>
+          <option value="แวนการ์ด Premium">แวนการ์ด Premium</option>
+          <option value="อุปกรณ์เสริมการ์ด">อุปกรณ์เสริม / ทั่วไป</option>
         </select>
+
+        <!-- เลือกประเภทสินค้า -->
+        <select 
+          v-model="selectedProductType" 
+          class="select select-bordered w-full lg:w-48"
+        >
+          <option value="">ทุกประเภทสินค้า</option>
+          <option value="การ์ดแยกใบ">การ์ดแยกใบ</option>
+          <option value="บ็อกซ์ / ซองเสริม">บ็อกซ์ / ซองเสริม</option>
+          <option value="เซ็ท / เด็คพร้อมเล่น">เซ็ท / เด็คพร้อมเล่น</option>
+          <option value="อุปกรณ์เสริม">อุปกรณ์เสริม</option>
+        </select>
+
+        <!-- เลือกระดับความแรร์ (ซ่อนอัตโนมัติถ้าเลือกประเภทที่ไม่ใช่การ์ดแยกใบ) -->
+        <select 
+          v-if="!selectedProductType || selectedProductType === 'การ์ดแยกใบ'"
+          v-model="selectedRarity" 
+          class="select select-bordered w-full lg:w-44"
+        >
+          <option value="">ความแรร์ทั้งหมด</option>
+          <option v-for="r in rarityOptions" :key="r" :value="r">{{ r }}</option>
+        </select>
+
         <button 
-          v-if="route.query.category || searchQuery || selectedRarity" 
-          @click="searchQuery = ''; selectedRarity = ''; router.push('/')" 
+          v-if="selectedFormat || selectedProductType || searchQuery || selectedRarity" 
+          @click="clearFilters" 
           class="btn btn-ghost"
         >
           ล้างตัวกรอง
@@ -173,18 +269,18 @@ onMounted(() => {
 
       <div v-if="loading" class="text-center py-10">
         <span class="loading loading-spinner loading-lg text-primary"></span>
-        <p class="mt-2 text-lg">กำลังโหลดข้อมูลการ์ด...</p>
+        <p class="mt-2 text-lg">กำลังโหลดข้อมูลสินค้า...</p>
       </div>
       <div v-else-if="error" class="text-center text-error">{{ error }}</div>
 
       <div v-else-if="filteredProducts.length === 0" class="text-center py-16 bg-base-100 rounded-2xl border border-base-300">
-        <p class="text-gray-400 text-lg mb-3">ยังไม่มีการ์ดในหมวดหมู่นี้ หรือไม่พบการ์ดที่ค้นหา</p>
-        <button @click="searchQuery = ''; selectedRarity = ''; router.push('/')" class="btn btn-outline btn-sm">
-          ดูการ์ดทั้งหมด
+        <p class="text-gray-400 text-lg mb-3">ยังไม่มีสินค้าในหมวดหมู่นี้ หรือไม่พบสินค้าที่ค้นหา</p>
+        <button @click="clearFilters" class="btn btn-outline btn-sm">
+          ดูสินค้าทั้งหมด
         </button>
       </div>
 
-      <!-- ตารางแสดงการ์ด (Grid System) -->
+      <!-- ตารางแสดงสินค้า (Grid System) -->
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div 
           v-for="product in filteredProducts" 
@@ -205,7 +301,7 @@ onMounted(() => {
               ไม่มีรูปภาพ
             </div>
             <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all flex items-center justify-center rounded-xl m-4">
-              <span class="badge badge-neutral opacity-0 group-hover:opacity-100 transition-opacity">คลิกดูรูปใหญ่</span>
+              <span class="badge badge-neutral opacity-0 group-hover:opacity-100 transition-opacity">คลิกดูรายละเอียด</span>
             </div>
           </figure>
 
@@ -218,19 +314,25 @@ onMounted(() => {
             </h2>
             
             <div class="flex justify-between items-center text-xs text-gray-400 mb-2">
-              <span class="truncate max-w-[150px]">{{ product.category_name || product.category || 'ไม่ระบุ' }}</span>
-              <span class="badge badge-outline badge-sm">{{ product.rarity }}</span>
+              <span class="truncate max-w-[140px]">{{ product.category_name || product.category || 'ไม่ระบุ' }}</span>
+              <!-- ถ้าเป็นการ์ดแยกใบให้โชว์ความแรร์ ถ้าไม่ใช่ให้โชว์ประเภทสินค้าแทน -->
+              <span v-if="getProductRarity(product)" class="badge badge-outline badge-sm">
+                {{ getProductRarity(product) }}
+              </span>
+              <span v-else class="badge badge-ghost badge-sm">
+                {{ getProductType(product) }}
+              </span>
             </div>
 
             <div class="flex justify-between items-end mt-auto pt-2 border-t border-base-200">
               <div>
                 <p class="text-xl font-bold text-primary">฿{{ Number(product.price).toLocaleString() }}</p>
                 <p class="text-xs" :class="product.stock > 0 ? 'text-success' : 'text-error'">
-                  คลัง: {{ product.stock }} ใบ
+                  คลัง: {{ product.stock }} ชิ้น
                 </p>
               </div>
               
-              <!-- ปุ่มสำหรับ Admin: แก้ไข และ ลบ ได้จากหน้าแรกทันที -->
+              <!-- ปุ่มสำหรับ Admin -->
               <div v-if="authStore.isAdmin" class="flex gap-1">
                 <button 
                   class="btn btn-info btn-xs text-white" 
@@ -261,7 +363,7 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Modal แสดงรายละเอียดการ์ดและรูปขนาดใหญ่ -->
+    <!-- Modal แสดงรายละเอียดสินค้าและรูปขนาดใหญ่ -->
     <div 
       v-if="selectedProduct" 
       class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4"
@@ -293,9 +395,14 @@ onMounted(() => {
 
           <div class="flex flex-col h-full justify-between space-y-4">
             <div>
-              <div class="flex items-center gap-2 mb-2">
-                <span class="badge badge-primary text-white">{{ selectedProduct.rarity }}</span>
-                <span class="text-sm text-gray-400">{{ selectedProduct.category_name || selectedProduct.category || 'Cardfight!! Vanguard' }}</span>
+              <div class="flex flex-wrap items-center gap-2 mb-2">
+                <span class="badge badge-neutral">{{ getProductType(selectedProduct) }}</span>
+                <span v-if="getProductRarity(selectedProduct)" class="badge badge-primary text-white">
+                  ความแรร์: {{ getProductRarity(selectedProduct) }}
+                </span>
+                <span class="text-sm text-gray-400">
+                  {{ selectedProduct.category_name || selectedProduct.category || 'Cardfight!! Vanguard' }}
+                </span>
               </div>
 
               <h2 class="text-2xl font-bold mb-3">{{ selectedProduct.name }}</h2>
@@ -305,16 +412,16 @@ onMounted(() => {
               </p>
 
               <div class="bg-base-200 p-4 rounded-xl mb-4">
-                <h3 class="text-sm font-semibold text-gray-400 mb-1">รายละเอียดการ์ด / ความสามารถ:</h3>
+                <h3 class="text-sm font-semibold text-gray-400 mb-1">รายละเอียดสินค้า:</h3>
                 <p class="text-sm whitespace-pre-line">
-                  {{ selectedProduct.description || 'ไม่มีรายละเอียดเพิ่มเติมสำหรับการ์ดใบนี้' }}
+                  {{ selectedProduct.description || 'ไม่มีรายละเอียดเพิ่มเติมสำหรับสินค้านี้' }}
                 </p>
               </div>
 
               <p class="text-sm">
                 สถานะคลังสินค้า: 
                 <span :class="selectedProduct.stock > 0 ? 'text-success font-bold' : 'text-error font-bold'">
-                  {{ selectedProduct.stock > 0 ? `มีสินค้าพร้อมส่ง (${selectedProduct.stock} ใบ)` : 'สินค้าหมดชั่วคราว' }}
+                  {{ selectedProduct.stock > 0 ? `มีสินค้าพร้อมส่ง (${selectedProduct.stock} ชิ้น)` : 'สินค้าหมดชั่วคราว' }}
                 </span>
               </p>
             </div>
@@ -327,13 +434,13 @@ onMounted(() => {
                   class="btn btn-info text-white" 
                   @click="goToEditProduct(selectedProduct.id)"
                 >
-                  แก้ไขการ์ด
+                  แก้ไขสินค้า
                 </button>
                 <button 
                   class="btn btn-error text-white" 
                   @click="deleteProductFromHome(selectedProduct.id, selectedProduct.name)"
                 >
-                  ลบการ์ด
+                  ลบสินค้า
                 </button>
               </template>
 
