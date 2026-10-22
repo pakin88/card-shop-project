@@ -3,23 +3,23 @@ const fs = require('fs');
 
 // ฟังก์ชันสร้างคำสั่งซื้อใหม่ (รับข้อมูลจากหน้า Checkout)
 exports.createOrder = async (req, res) => {
-    // ต้องครอบด้วย Transaction เพราะเราต้อง Insert หลายตาราง ถ้าพังอันใดอันหนึ่งต้องย้อนกลับ (Rollback) หมด
-    const connection = await db.getConnection(); 
-    await connection.beginTransaction();
-
+    let connection;
     try {
+        connection = await db.getConnection();
+        await connection.beginTransaction();
+
         const { total_amount, payment_method, shipping_address, phone, items } = req.body;
-        const user_id = req.user.id; // ได้มาจาก authMiddleware
+        const user_id = req.user.id;
         
-        // แปลงไฟล์รูปสลิปเป็น Base64 เพื่อเก็บลงฐานข้อมูลโดยตรง (รูปจะไม่หายเมื่อ Render รีสตาร์ท)
+        // รองรับทั้ง memoryStorage (buffer) และ diskStorage (path)
         let slip_image = null;
-        if (req.file) {
-            const fileData = fs.readFileSync(req.file.path);
+if (req.file) {
+            const fileData = req.file.buffer ? req.file.buffer : fs.readFileSync(req.file.path);
             const base64Image = fileData.toString('base64');
+            // สำหรับ orderController ใช้ตัวแปร slip_image / สำหรับ productController ใช้ตัวแปร image_url
             slip_image = `data:${req.file.mimetype};base64,${base64Image}`;
         }
 
-        // เช็คว่าถ้าเลือกโอนเงินหรือ QR ต้องมีรูปสลิป
         if ((payment_method === 'transfer' || payment_method === 'qr') && !slip_image) {
             throw new Error('กรุณาแนบรูปสลิปโอนเงิน');
         }
@@ -34,44 +34,41 @@ exports.createOrder = async (req, res) => {
         const orderId = orderResult.insertId;
 
         // 2. บันทึกรายการสินค้าลง order_items พร้อมตัดสต็อก
-        const parsedItems = JSON.parse(items);
+        const parsedItems = typeof items === 'string' ? JSON.parse(items) : items;
 
         for (let item of parsedItems) {
-            // เช็คสต็อกอีกรอบเพื่อความชัวร์ก่อนบันทึก
             const [productCheck] = await connection.query('SELECT stock FROM products WHERE id = ?', [item.id]);
+            if (productCheck.length === 0) {
+                throw new Error(`ไม่พบสินค้า "${item.name}" ในระบบ กรุณาลบออกจากตะกร้าแล้วเลือกใหม่`);
+            }
             if (productCheck[0].stock < item.quantity) {
                 throw new Error(`สินค้า "${item.name}" ในคลังมีไม่พอ`);
             }
 
-            // บันทึกรายการลงบิล
             await connection.query(
                 `INSERT INTO order_items (order_id, product_id, quantity, price_at_purchase) VALUES (?, ?, ?, ?)`,
                 [orderId, item.id, item.quantity, item.price]
             );
 
-            // ตัดสต็อกสินค้า
             await connection.query(
                 `UPDATE products SET stock = stock - ? WHERE id = ?`,
                 [item.quantity, item.id]
             );
         }
 
-        // ถ้ารอดมาถึงบรรทัดนี้แปลว่าสำเร็จทั้งหมด ให้ยืนยันการเซฟ (Commit)
         await connection.commit();
         res.status(201).json({ message: 'สั่งซื้อสำเร็จ!', orderId: orderId });
 
     } catch (error) {
-        // ถ้ามีตรงไหนพัง ให้ยกเลิกคำสั่งทั้งหมดใน Block นี้ (Rollback)
-        await connection.rollback();
-        console.error(error);
+        if (connection) await connection.rollback();
+        console.error('Order Error:', error);
         res.status(400).json({ message: error.message || 'เกิดข้อผิดพลาดในการสั่งซื้อ' });
     } finally {
-        // คืน connection กลับไปให้ระบบ
-        connection.release(); 
+        if (connection) connection.release();
     }
 };
 
-// 1. ดึงคำสั่งซื้อทั้งหมดพร้อมรายการการ์ด (สำหรับ Admin)
+// 1. ดึงคำสั่งซื้อทั้งหมดพร้อมรายการสินค้า (สำหรับ Admin)
 exports.getAllOrders = async (req, res) => {
     try {
         const [orders] = await db.query(`
@@ -81,7 +78,6 @@ exports.getAllOrders = async (req, res) => {
             ORDER BY o.created_at DESC
         `);
 
-        // ดึงรายการการ์ดข้างในของแต่ละออเดอร์
         for (let order of orders) {
             const [items] = await db.query(`
                 SELECT oi.*, p.name AS product_name, p.price AS product_price 
@@ -116,6 +112,8 @@ exports.updateOrderStatus = async (req, res) => {
         res.status(500).json({ message: 'เกิดข้อผิดพลาดในการอัปเดตสถานะ' });
     }
 };
+
+// 3. ดึงประวัติการสั่งซื้อของลูกค้า
 exports.getMyOrders = async (req, res) => {
     try {
         const user_id = req.user.id;

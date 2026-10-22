@@ -1,24 +1,7 @@
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 
-// ตรวจสอบและสร้างโฟลเดอร์อัตโนมัติถ้ายังไม่มี
-const dir = 'uploads/products';
-if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-}
-
-// ตั้งค่าที่เก็บไฟล์และชื่อไฟล์
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/products/');
-    },
-    filename: (req, file, cb) => {
-        // ตั้งชื่อไฟล์ใหม่: เวลาปัจจุบัน + สุ่มตัวเลข + นามสกุลไฟล์เดิม
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, 'card-' + uniqueSuffix + path.extname(file.originalname));
-    }
-});
+// เก็บไฟล์ไว้ในหน่วยความจำชั่วคราว (RAM) เพื่อแปลงเป็น Base64 ลงฐานข้อมูลโดยตรง
+const storage = multer.memoryStorage();
 
 // กรองให้รับเฉพาะไฟล์รูปภาพ
 const fileFilter = (req, file, cb) => {
