@@ -41,30 +41,36 @@ const submitOrder = async () => {
   errorMessage.value = '';
 
   try {
-    // ต้องใช้ FormData เพราะมีการอัปโหลดไฟล์
     const orderData = new FormData();
     orderData.append('total_amount', cartStore.totalPrice);
     orderData.append('payment_method', formData.value.payment_method);
     orderData.append('shipping_address', formData.value.shipping_address);
     orderData.append('phone', formData.value.phone);
-    // แปลงตะกร้าเป็น JSON ก่อนแนบ
-    orderData.append('items', JSON.stringify(cartStore.items)); 
+
+    // คัดเฉพาะข้อมูลที่ orderController ต้องใช้ (ตัด image_url ที่เป็น Base64 ยาวๆ ออก)
+    const minimalItems = cartStore.items.map(item => ({
+      id: item.id,
+      name: item.name,
+      quantity: item.quantity,
+      price: item.price
+    }));
+    orderData.append('items', JSON.stringify(minimalItems)); 
     
     if (slipFile.value) {
       orderData.append('slip_image', slipFile.value);
     }
 
-  
-const response = await axios.post('https://card-shop-project.onrender.com/api/orders', orderData, {
+    const response = await axios.post('https://card-shop-project.onrender.com/api/orders', orderData, {
       headers: {
         'Authorization': `Bearer ${authStore.token}`,
         'Content-Type': 'multipart/form-data'
       }
     });
-if (response.status === 201) {
+
+    if (response.status === 201) {
       alert('สั่งซื้อสำเร็จ! รอ Admin ตรวจสอบ');
-      cartStore.clearCart(); // ล้างตะกร้า
-      router.push('/my-orders'); // <-- เปลี่ยนจาก '/' เป็น '/my-orders'
+      cartStore.clearCart();
+      router.push('/my-orders');
     }
 
   } catch (error) {
@@ -74,7 +80,6 @@ if (response.status === 201) {
   }
 };
 </script>
-
 <template>
   <div class="p-6 max-w-4xl mx-auto">
     <h1 class="text-3xl font-bold mb-8 text-center">ยืนยันคำสั่งซื้อ</h1>

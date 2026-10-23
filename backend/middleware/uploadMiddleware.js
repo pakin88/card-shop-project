@@ -12,10 +12,15 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
+
+
 const upload = multer({ 
     storage: storage,
     fileFilter: fileFilter,
-    limits: { fileSize: 5 * 1024 * 1024 } // จำกัดขนาดไฟล์ไม่เกิน 5MB
+    limits: { 
+        fileSize: 5 * 1024 * 1024, // จำกัดขนาดไฟล์ไม่เกิน 5MB
+        fieldSize: 25 * 1024 * 1024 // ขยายขนาดข้อความฟิลด์ให้รองรับข้อมูลขนาดใหญ่ (25MB)
+    }
 });
 
 module.exports = upload;
