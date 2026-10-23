@@ -11,4 +11,6 @@ router.post('/', verifyToken, upload.single('slip_image'), orderController.creat
 router.get('/', orderController.getAllOrders);
 router.put('/:id/status', orderController.updateOrderStatus);
 router.get('/my-orders', verifyToken, orderController.getMyOrders);
+// ดูชื่อ Middleware จากบรรทัด router.put('/:id/status', ...) เดิมของคุณ แล้วใส่ให้เหมือนกันครับ
+router.delete('/:id', /* ใส่ Middleware เดียวกับบรรทัด put status */, orderController.deleteOrder);
 module.exports = router;
