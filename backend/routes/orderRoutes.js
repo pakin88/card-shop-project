@@ -7,10 +7,12 @@ const upload = require('../middleware/uploadMiddleware'); // ใช้ตัว�
 // สร้างออเดอร์ใหม่ (ต้องล็อกอิน และรับไฟล์สลิปชื่อ 'slip_image')
 router.post('/', verifyToken, upload.single('slip_image'), orderController.createOrder);
 
-// เพิ่ม 2 บรรทัดนี้สำหรับ Admin
+// ดึงประวัติคำสั่งซื้อของลูกค้าที่ล็อกอินอยู่
+router.get('/my-orders', verifyToken, orderController.getMyOrders);
+
+// สำหรับ Admin จัดการออเดอร์ทั้งหมด, อัปเดตสถานะ และลบออเดอร์
 router.get('/', orderController.getAllOrders);
 router.put('/:id/status', orderController.updateOrderStatus);
-router.get('/my-orders', verifyToken, orderController.getMyOrders);
-// ดูชื่อ Middleware จากบรรทัด router.put('/:id/status', ...) เดิมของคุณ แล้วใส่ให้เหมือนกันครับ
-router.delete('/:id', /* ใส่ Middleware เดียวกับบรรทัด put status */, orderController.deleteOrder);
+router.delete('/:id', orderController.deleteOrder);
+
 module.exports = router;
