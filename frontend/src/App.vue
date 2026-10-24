@@ -29,7 +29,7 @@ const handleLogout = () => {
 </script>
 
 <template>
-  <div data-theme="dark" class="min-h-screen flex flex-col bg-base-200 text-base-content">
+  <div data-theme="white" class="min-h-screen flex flex-col bg-base-200 text-base-content">
     <!-- Navbar -->
     <div class="navbar bg-base-100 shadow-md px-4 md:px-8 border-b border-base-300 flex-wrap justify-between sticky top-0 z-40">
       
