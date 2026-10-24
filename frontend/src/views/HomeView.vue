@@ -150,11 +150,9 @@ onMounted(() => {
         :style="`background-image: linear-gradient(to bottom, rgba(15, 23, 42, 0.45), rgba(15, 23, 42, 0.92)), url('${BANNER_IMAGE}');`"
       >
         <div class="text-center px-4 max-w-3xl z-10 mt-2 sm:mt-6">
-          <span class="badge badge-primary badge-outline bg-base-100/60 backdrop-blur-sm mb-2 sm:mb-3 px-3 py-2.5 text-[10px] sm:text-xs font-semibold tracking-wider">
-            CARDFIGHT!! VANGUARD OFFICIAL SHOP
-          </span>
           <h1 class="text-3xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight mb-2 sm:mb-4 drop-shadow-lg">
-            STAND UP, <span class="text-primary">VANGUARD!</span>
+            CARDFIGHT!! VANGUARD OFFICIAL SHOP
+
           </h1>
           <p class="text-gray-200 text-xs sm:text-sm md:text-lg mb-4 sm:mb-6 max-w-2xl mx-auto drop-shadow leading-relaxed">
             แหล่งรวมสินค้าแวนการ์ดครบวงจร ทั้งการ์ดแยกใบ บ็อกซ์บูสเตอร์ เด็คพร้อมเล่น และอุปกรณ์เสริม ครบทุก Format ทั้ง D-Standard ไทย, ญี่ปุ่น และ Premium
@@ -166,7 +164,7 @@ onMounted(() => {
             <button 
               v-if="authStore.isAdmin" 
               @click="goToAddProduct" 
-              class="btn btn-warning btn-sm sm:btn-md text-black font-bold shadow-lg"
+              class="btn btn-warning btn-sm sm:btn-md text-white font-bold shadow-lg"
             >
               + เพิ่มสินค้าลงหน้าร้าน
             </button>
