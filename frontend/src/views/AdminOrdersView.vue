@@ -64,6 +64,7 @@ const filteredOrders = computed(() => {
     return orders.value;
 });
 
+// บันทึกการเปลี่ยนสถานะและเลขพัสดุ พร้อมส่งอีเมลแจ้งลูกค้าเมื่อจัดส่งแล้ว
 const updateOrder = async (order) => {
     try {
         await axios.put(`${API_URL}/api/orders/${order.id}/status`, {
@@ -73,7 +74,25 @@ const updateOrder = async (order) => {
             headers: { Authorization: `Bearer ${authStore.token}` }
         });
         order.saved_status = order.status;
-        alert(`อัปเดตออเดอร์ #${order.id} สำเร็จ!`);
+
+        // ถ้าเปลี่ยนสถานะเป็น "จัดส่งแล้ว (shipped)" และลูกค้ามีอีเมล ให้ส่งอีเมลแจ้งเลขพัสดุทันที
+        if (order.status === 'shipped' && order.email) {
+            await axios.post('https://api.emailjs.com/api/v1.0/email/send', {
+                service_id: 'service_aheij2x',
+                template_id: 'template_q7rw97p',
+                user_id: 'c_pkUOjDkUAIm9gvM',
+                template_params: {
+                    to_email: order.email,
+                    customer_name: order.username || 'ลูกค้า',
+                    order_id: order.id,
+                    tracking_number: order.tracking_number || 'ไม่ได้ระบุเลขพัสดุ',
+                    total_amount: Number(order.total_amount).toLocaleString()
+                }
+            });
+            alert(`อัปเดตออเดอร์ #${order.id} และส่งอีเมลแจ้งเลขพัสดุไปที่ ${order.email} สำเร็จ!`);
+        } else {
+            alert(`อัปเดตออเดอร์ #${order.id} สำเร็จ!`);
+        }
     } catch (error) {
         alert(error.response?.data?.message || 'เกิดข้อผิดพลาดในการอัปเดตออเดอร์');
         console.error(error);
