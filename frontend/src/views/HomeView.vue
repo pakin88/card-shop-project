@@ -12,12 +12,15 @@ const route = useRoute();
 
 const API_URL = 'https://card-shop-project.onrender.com';
 
-const BANNER_IMAGE = 'https://i.redd.it/4dxrl7dpjfgd1.jpg';
+const BANNER_IMAGE = 'https://images.unsplash.com/photo-1614680376593-902f74cf0d41?q=80&w=1600&auto=format&fit=crop';
 
 const products = ref([]);
 const loading = ref(true);
 const error = ref(null);
 const selectedProduct = ref(null);
+
+// อัตราแลกเปลี่ยนเงินเยนเป็นเงินบาท (ค่าเริ่มต้น 0.23 บาทต่อ 1 เยน และดึงค่าจริงอัตโนมัติเมื่อเปิดหน้าเว็บ)
+const jpyToThbRate = ref(0.23);
 
 const nonSingleTypes = [
   'บ็อกซ์ / ซองเสริม',
@@ -34,6 +37,34 @@ const searchQuery = ref('');
 const selectedFormat = ref(route.query.category || '');
 const selectedProductType = ref('');
 const selectedRarity = ref('');
+
+// ดึงอัตราแลกเปลี่ยนเงินเยนล่าสุดอัตโนมัติ
+const fetchExchangeRate = async () => {
+  try {
+    const res = await axios.get('https://open.er-api.com/v6/latest/JPY');
+    if (res.data && res.data.rates && res.data.rates.THB) {
+      jpyToThbRate.value = Number(res.data.rates.THB);
+    }
+  } catch (err) {
+    // หากดึง API ค่าเงินไม่สำเร็จ ให้ใช้เรทมาตรฐาน 0.23 บาทต่อเยน
+    jpyToThbRate.value = 0.23;
+  }
+};
+
+// คำนวณราคาเยนเป็นเงินบาทโดยประมาณ
+const convertYenToThb = (yen) => {
+  if (!yen) return 0;
+  return Math.round(Number(yen) * jpyToThbRate.value);
+};
+
+// สร้างลิงก์ไปหน้าเว็บ Yuyu-tei (ถ้าไม่ได้วางลิงก์ตรงไว้ จะสร้างลิงก์ค้นหาจากรหัสการ์ดหรือชื่อการ์ดให้อัตโนมัติ)
+const getYuyuteiLink = (product) => {
+  if (product.yuyutei_url && product.yuyutei_url.trim() !== '') {
+    return product.yuyutei_url.trim();
+  }
+  const keyword = product.card_code ? product.card_code.trim() : product.name.trim();
+  return `https://yuyu-tei.jp/sell/vg/s/search?search_word=${encodeURIComponent(keyword)}`;
+};
 
 // ตรวจสอบประเภทสินค้า
 const getProductType = (product) => {
@@ -97,7 +128,10 @@ const filteredProducts = computed(() => {
 
     const matchCategory = !selectedFormat.value || prodCategory === selectedFormat.value;
     const matchType = !selectedProductType.value || prodType === selectedProductType.value;
-    const matchSearch = !searchQuery.value || product.name.toLowerCase().includes(searchQuery.value.toLowerCase());
+    const q = searchQuery.value.toLowerCase();
+    const matchSearch = !q || 
+      product.name.toLowerCase().includes(q) || 
+      (product.card_code && product.card_code.toLowerCase().includes(q));
     const matchRarity = !selectedRarity.value || prodRarity === selectedRarity.value;
 
     return matchCategory && matchType && matchSearch && matchRarity;
@@ -137,6 +171,7 @@ const scrollToProducts = () => {
 };
 
 onMounted(() => {
+  fetchExchangeRate();
   fetchProducts();
 });
 </script>
@@ -150,12 +185,12 @@ onMounted(() => {
         :style="`background-image: linear-gradient(to bottom, rgba(15, 23, 42, 0.45), rgba(15, 23, 42, 0.92)), url('${BANNER_IMAGE}');`"
       >
         <div class="text-center px-4 max-w-3xl z-10 mt-2 sm:mt-6">
+   
           <h1 class="text-3xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight mb-2 sm:mb-4 drop-shadow-lg">
             CARDFIGHT!! VANGUARD OFFICIAL SHOP
-
           </h1>
           <p class="text-gray-200 text-xs sm:text-sm md:text-lg mb-4 sm:mb-6 max-w-2xl mx-auto drop-shadow leading-relaxed">
-            แหล่งรวมสินค้าแวนการ์ดครบวงจร ทั้งการ์ดแยกใบ บ็อกซ์บูสเตอร์ เด็คพร้อมเล่น และอุปกรณ์เสริม ครบทุก Format ทั้ง D-Standard ไทย, ญี่ปุ่น และ Premium
+            แหล่งรวมสินค้าแวนการ์ดครบวงจร ทั้งการ์ดแยกใบ บ็อกซ์บูสเตอร์ เด็คพร้อมเล่น และอุปกรณ์เสริม ครบทุก Format พร้อมระบบเทียบราคาการ์ดญี่ปุ่นจาก Yuyu-tei
           </p>
           <div class="flex flex-wrap justify-center gap-2 sm:gap-3">
             <button @click="scrollToProducts" class="btn btn-primary btn-sm sm:btn-md text-white px-5 shadow-lg">
@@ -181,12 +216,12 @@ onMounted(() => {
           <p class="text-[11px] sm:text-xs text-gray-400">คัดสภาพสินค้าคุณภาพทุกชิ้นก่อนจัดส่ง</p>
         </div>
         <div class="px-2 sm:px-3 py-0.5 sm:py-1 border-t md:border-t-0 md:border-l border-base-200 pt-2 md:pt-1">
-          <h3 class="font-bold text-xs sm:text-sm">แพ็คสินค้ากันกระแทกอย่างดี</h3>
-          <p class="text-[11px] sm:text-xs text-gray-400">ดามป้องกันการงอและห่อบับเบิ้ลหนาทุกออเดอร์</p>
+          <h3 class="font-bold text-xs sm:text-sm">เทียบราคาตลาดญี่ปุ่น (Yuyu-tei)</h3>
+          <p class="text-[11px] sm:text-xs text-gray-400">แสดงเรทราคาการ์ดญี่ปุ่นโปร่งใส ตรวจสอบได้จริง</p>
         </div>
         <div class="px-2 sm:px-3 py-0.5 sm:py-1 border-t md:border-t-0 md:border-l border-base-200 pt-2 md:pt-1">
           <h3 class="font-bold text-xs sm:text-sm">จัดส่งไว เช็คเลขพัสดุได้</h3>
-          <p class="text-[11px] sm:text-xs text-gray-400">รองรับสแกน QR, โอนบัญชี และเก็บปลายทาง</p>
+          <p class="text-[11px] sm:text-xs text-gray-400">แจ้งเตือนเลขพัสดุทางอีเมลอัตโนมัติ</p>
         </div>
       </div>
     </div>
@@ -199,7 +234,7 @@ onMounted(() => {
             <span>{{ selectedFormat ? `หมวดหมู่: ${selectedFormat}` : 'รายการสินค้าล่าสุด' }}</span>
             <span class="badge badge-neutral text-xs">{{ filteredProducts.length }} รายการ</span>
           </h2>
-          <p class="text-xs sm:text-sm text-gray-400 mt-1">คลิกที่รูปสินค้าเพื่อดูภาพขนาดใหญ่และอ่านรายละเอียด</p>
+          <p class="text-xs sm:text-sm text-gray-400 mt-1">คลิกที่รูปสินค้าเพื่อดูภาพขนาดใหญ่ รายละเอียด และเทียบราคาตลาดญี่ปุ่น</p>
         </div>
 
         <button 
@@ -211,12 +246,12 @@ onMounted(() => {
         </button>
       </div>
 
-      <!-- แถบค้นหาชื่อสินค้า + ตัวกรอง จัดเรียงกะทัดรัดบนมือถือ -->
+      <!-- แถบค้นหาชื่อสินค้า / รหัสการ์ด + ตัวกรอง -->
       <div class="flex flex-col lg:flex-row gap-2.5 sm:gap-3 mb-6 sm:mb-8">
         <input 
           type="text" 
           v-model="searchQuery" 
-          placeholder="ค้นหาชื่อสินค้า..." 
+          placeholder="ค้นหาชื่อสินค้า หรือรหัสการ์ด (เช่น DZ-BT16)..." 
           class="input input-bordered input-sm sm:input-md w-full lg:flex-1"
         />
 
@@ -279,7 +314,7 @@ onMounted(() => {
         </button>
       </div>
 
-      <!-- ตารางแสดงสินค้า: มือถือแสดง 2 คอลัมน์ (grid-cols-2), จอใหญ่แสดง 4 คอลัมน์ -->
+      <!-- ตารางแสดงสินค้า -->
       <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-6">
         <div 
           v-for="product in filteredProducts" 
@@ -305,6 +340,10 @@ onMounted(() => {
           </figure>
 
           <div class="card-body p-2.5 sm:p-4">
+            <div v-if="product.card_code" class="text-[10px] sm:text-xs font-mono text-info truncate">
+              {{ product.card_code }}
+            </div>
+
             <h2 
               class="font-bold text-xs sm:text-lg leading-snug h-9 sm:h-14 line-clamp-2 overflow-hidden cursor-pointer hover:text-primary transition-colors"
               @click="selectedProduct = product"
@@ -312,7 +351,7 @@ onMounted(() => {
               {{ product.name }}
             </h2>
             
-            <div class="flex flex-wrap justify-between items-center gap-1 text-[10px] sm:text-xs text-gray-400 my-1 sm:mb-2">
+            <div class="flex flex-wrap justify-between items-center gap-1 text-[10px] sm:text-xs text-gray-400 my-1">
               <span class="truncate max-w-[85px] sm:max-w-[140px]">{{ product.category_name || product.category || 'ไม่ระบุ' }}</span>
               <span v-if="getProductRarity(product)" class="badge badge-outline badge-xs sm:badge-sm">
                 {{ getProductRarity(product) }}
@@ -320,6 +359,19 @@ onMounted(() => {
               <span v-else class="badge badge-ghost badge-xs sm:badge-sm truncate max-w-[90px] sm:max-w-none">
                 {{ getProductType(product) }}
               </span>
+            </div>
+
+            <!-- กล่องแสดงราคาเทียบเว็บญี่ปุ่น Yuyu-tei บนหน้าการ์ดสินค้า -->
+            <div 
+              v-if="product.yuyutei_price" 
+              class="bg-base-200/90 border border-base-300 rounded-lg px-2 py-1.5 my-1 text-[10px] sm:text-xs"
+            >
+              <div class="flex justify-between items-center">
+                <span class="text-gray-400">Yuyu-tei (JP):</span>
+                <span class="font-bold text-warning">
+                  {{ Number(product.yuyutei_price).toLocaleString() }} 円 (~฿{{ convertYenToThb(product.yuyutei_price).toLocaleString() }})
+                </span>
+              </div>
             </div>
 
             <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-2 mt-auto pt-2 border-t border-base-200">
@@ -361,7 +413,7 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Modal แสดงรายละเอียดสินค้าและรูปขนาดใหญ่ รองรับมือถือ -->
+    <!-- Modal แสดงรายละเอียดสินค้าและตารางเปรียบเทียบราคา Yuyu-tei -->
     <div 
       v-if="selectedProduct" 
       class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-3 sm:p-4"
@@ -398,6 +450,9 @@ onMounted(() => {
                 <span v-if="getProductRarity(selectedProduct)" class="badge badge-primary badge-sm sm:badge-md text-white">
                   ความแรร์: {{ getProductRarity(selectedProduct) }}
                 </span>
+                <span v-if="selectedProduct.card_code" class="badge badge-info badge-outline badge-sm sm:badge-md font-mono">
+                  {{ selectedProduct.card_code }}
+                </span>
                 <span class="text-xs sm:text-sm text-gray-400">
                   {{ selectedProduct.category_name || selectedProduct.category || 'Cardfight!! Vanguard' }}
                 </span>
@@ -405,9 +460,70 @@ onMounted(() => {
 
               <h2 class="text-lg sm:text-2xl font-bold mb-2 sm:mb-3">{{ selectedProduct.name }}</h2>
 
-              <p class="text-2xl sm:text-3xl font-bold text-primary mb-3 sm:mb-4">
-                ฿{{ Number(selectedProduct.price).toLocaleString() }}
-              </p>
+              <div class="flex items-baseline gap-3 mb-3">
+                <p class="text-2xl sm:text-3xl font-bold text-primary">
+                  ฿{{ Number(selectedProduct.price).toLocaleString() }}
+                </p>
+                <span class="text-xs text-gray-400">ราคาจำหน่ายหน้าร้าน</span>
+              </div>
+
+              <!-- กล่องเปรียบเทียบราคาตลาดญี่ปุ่น (Yuyu-tei.jp) -->
+              <div 
+                v-if="selectedProduct.yuyutei_price || selectedProduct.card_code || selectedProduct.yuyutei_url" 
+                class="bg-base-200 p-3.5 rounded-xl border border-primary/40 mb-3 sm:mb-4 space-y-2"
+              >
+                <div class="flex items-center justify-between border-b border-base-300 pb-2">
+                  <span class="text-xs sm:text-sm font-bold text-warning">เปรียบเทียบราคาตลาดญี่ปุ่น (Yuyu-tei)</span>
+                  <span v-if="selectedProduct.card_code" class="text-xs font-mono text-gray-300">
+                    รหัส: {{ selectedProduct.card_code }}
+                  </span>
+                </div>
+
+                <div v-if="selectedProduct.yuyutei_price" class="grid grid-cols-2 gap-2 text-xs sm:text-sm py-1">
+                  <div>
+                    <p class="text-gray-400 text-xs">ราคาบนเว็บ Yuyu-tei:</p>
+                    <p class="font-bold text-base sm:text-lg text-white">
+                      {{ Number(selectedProduct.yuyutei_price).toLocaleString() }} 円
+                    </p>
+                  </div>
+                  <div>
+                    <p class="text-gray-400 text-xs">คิดเป็นเงินไทย (เรท {{ jpyToThbRate.toFixed(3) }}):</p>
+                    <p class="font-bold text-base sm:text-lg text-warning">
+                      ~฿{{ convertYenToThb(selectedProduct.yuyutei_price).toLocaleString() }}
+                    </p>
+                  </div>
+                </div>
+
+                <!-- แสดงส่วนต่างราคา -->
+                <div v-if="selectedProduct.yuyutei_price" class="text-xs pt-1">
+                  <span 
+                    v-if="Number(selectedProduct.price) < convertYenToThb(selectedProduct.yuyutei_price)" 
+                    class="badge badge-success badge-sm text-white"
+                  >
+                    ราคาหน้าร้านถูกกว่าญี่ปุ่นประมาณ ฿{{ (convertYenToThb(selectedProduct.yuyutei_price) - Number(selectedProduct.price)).toLocaleString() }}
+                  </span>
+                  <span 
+                    v-else-if="Number(selectedProduct.price) === convertYenToThb(selectedProduct.yuyutei_price)" 
+                    class="badge badge-info badge-sm text-white"
+                  >
+                    ราคาเท่ากับเรทตลาดญี่ปุ่น
+                  </span>
+                  <span v-else class="text-gray-400">
+                    * ราคาหน้าร้านรวมค่าขนส่งและภาษีนำเข้าจากญี่ปุ่นแล้ว
+                  </span>
+                </div>
+
+                <div class="pt-1">
+                  <a 
+                    :href="getYuyuteiLink(selectedProduct)" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    class="btn btn-outline btn-warning btn-xs sm:btn-sm w-full"
+                  >
+                    เปิดดูราคาการ์ดใบนี้บนเว็บ Yuyu-tei.jp
+                  </a>
+                </div>
+              </div>
 
               <div class="bg-base-200 p-3 sm:p-4 rounded-xl mb-3 sm:mb-4">
                 <h3 class="text-xs sm:text-sm font-semibold text-gray-400 mb-1">รายละเอียดสินค้า:</h3>

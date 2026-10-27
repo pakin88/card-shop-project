@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import { useAuthStore } from '../stores/auth';
 import { useRouter, useRoute } from 'vue-router';
@@ -46,11 +46,20 @@ const formData = ref({
   rarity: 'RRR',
   price: '',
   stock: '',
-  description: ''
+  description: '',
+  card_code: '',
+  yuyutei_price: '',
+  yuyutei_url: ''
 });
 
 const imageFile = ref(null);
 const imagePreview = ref('');
+
+// เช็คว่าเป็นสินค้าที่ควรแสดงช่องกรอกเทียบราคาญี่ปุ่นหรือไม่ (เฉพาะการ์ดแยกใบ ในหมวด JP หรือ Premium)
+const showYuyuteiFields = computed(() => {
+  return formData.value.product_type === 'การ์ดแยกใบ' && 
+    (formData.value.category === 'แวนการ์ด D JP');
+});
 
 const getProductType = (product) => {
   if (!product.rarity || product.rarity === '-') return 'สินค้าทั่วไป';
@@ -89,11 +98,14 @@ const openAddModal = () => {
   formData.value = {
     name: '',
     product_type: 'การ์ดแยกใบ',
-    category: 'แวนการ์ด D ไทย',
+    category: 'แวนการ์ด D JP',
     rarity: 'RRR',
     price: '',
     stock: '',
-    description: ''
+    description: '',
+    card_code: '',
+    yuyutei_price: '',
+    yuyutei_url: ''
   };
   imageFile.value = null;
   imagePreview.value = '';
@@ -116,7 +128,10 @@ const openEditModal = (product) => {
     rarity: detectedRarity,
     price: product.price,
     stock: product.stock,
-    description: product.description || ''
+    description: product.description || '',
+    card_code: product.card_code || '',
+    yuyutei_price: product.yuyutei_price || '',
+    yuyutei_url: product.yuyutei_url || ''
   };
   imageFile.value = null;
   imagePreview.value = getImageUrl(product.image_url);
@@ -153,6 +168,17 @@ const saveProduct = async () => {
     data.append('price', formData.value.price);
     data.append('stock', formData.value.stock);
     data.append('description', formData.value.description);
+
+    // แนบข้อมูลเทียบราคา Yuyu-tei เฉพาะเมื่อเป็นการ์ดแยกใบของญี่ปุ่น
+    if (showYuyuteiFields.value) {
+      data.append('card_code', formData.value.card_code.trim());
+      data.append('yuyutei_price', formData.value.yuyutei_price);
+      data.append('yuyutei_url', formData.value.yuyutei_url.trim());
+    } else {
+      data.append('card_code', '');
+      data.append('yuyutei_price', '');
+      data.append('yuyutei_url', '');
+    }
 
     if (imageFile.value) {
       data.append('image', imageFile.value);
@@ -230,7 +256,7 @@ onMounted(async () => {
     </div>
 
     <div v-else>
-      <!-- มุมมองการ์ดสำหรับหน้าจอมือถือ (แสดงเฉพาะจอเล็ก) -->
+      <!-- มุมมองการ์ดสำหรับหน้าจอมือถือ -->
       <div class="grid grid-cols-1 gap-3 md:hidden">
         <div 
           v-for="product in products" 
@@ -244,11 +270,17 @@ onMounted(async () => {
 
           <div class="flex-1 min-w-0">
             <h3 class="font-bold text-sm truncate">{{ product.name }}</h3>
-            <p class="text-xs text-gray-400 truncate">{{ product.category_name || product.category }}</p>
+            <p class="text-xs text-gray-400 truncate">
+              {{ product.category_name || product.category }}
+              <span v-if="product.card_code" class="text-info ml-1">[{{ product.card_code }}]</span>
+            </p>
             <div class="flex flex-wrap gap-1 mt-1">
               <span class="badge badge-ghost badge-xs">{{ getProductType(product) }}</span>
               <span v-if="getProductRarity(product) !== '-'" class="badge badge-outline badge-xs">
                 {{ getProductRarity(product) }}
+              </span>
+              <span v-if="product.yuyutei_price" class="badge badge-warning badge-xs text-black font-semibold">
+                Yuyu-tei: {{ Number(product.yuyutei_price).toLocaleString() }} 円
               </span>
             </div>
             <div class="flex justify-between items-center mt-2">
@@ -269,17 +301,18 @@ onMounted(async () => {
         </div>
       </div>
 
-      <!-- มุมมองตารางสำหรับจอคอมพิวเตอร์และแท็บเล็ต -->
+      <!-- มุมมองตารางสำหรับจอคอมพิวเตอร์ -->
       <div class="hidden md:block overflow-x-auto bg-base-100 rounded-xl shadow border border-base-300">
         <table class="table w-full">
           <thead>
             <tr class="bg-base-200 text-sm">
               <th>รูปภาพ</th>
-              <th>ชื่อสินค้า</th>
+              <th>ชื่อสินค้า / รหัสการ์ด</th>
               <th>ประเภทสินค้า</th>
               <th>หมวดหมู่ Format</th>
               <th>ความแรร์</th>
-              <th>ราคา</th>
+              <th>ราคาหน้าร้าน</th>
+              <th>ราคา Yuyu-tei</th>
               <th>สต็อก</th>
               <th class="text-center">จัดการ</th>
             </tr>
@@ -292,7 +325,12 @@ onMounted(async () => {
                   <span v-else class="text-xs text-gray-400">ไม่มีรูป</span>
                 </div>
               </td>
-              <td class="font-bold">{{ product.name }}</td>
+              <td>
+                <div class="font-bold">{{ product.name }}</div>
+                <div v-if="product.card_code" class="text-xs text-info font-mono mt-0.5">
+                  รหัส: {{ product.card_code }}
+                </div>
+              </td>
               <td>
                 <span class="badge badge-ghost badge-sm">{{ getProductType(product) }}</span>
               </td>
@@ -304,6 +342,12 @@ onMounted(async () => {
                 <span v-else class="text-gray-500">-</span>
               </td>
               <td class="text-primary font-bold">฿{{ Number(product.price).toLocaleString() }}</td>
+              <td>
+                <span v-if="product.yuyutei_price" class="badge badge-warning text-black font-semibold">
+                  {{ Number(product.yuyutei_price).toLocaleString() }} 円
+                </span>
+                <span v-else class="text-gray-500 text-xs">-</span>
+              </td>
               <td>
                 <span :class="product.stock > 0 ? 'text-success' : 'text-error font-bold'">
                   {{ product.stock }} ชิ้น
@@ -365,9 +409,51 @@ onMounted(async () => {
             </select>
           </div>
 
+          <!-- ส่วนข้อมูลเทียบราคาเว็บญี่ปุ่น Yuyu-tei (แสดงเฉพาะการ์ดแยกใบในหมวด JP หรือ Premium) -->
+          <div v-if="showYuyuteiFields" class="bg-base-200 p-3.5 rounded-xl border border-primary/40 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs sm:text-sm font-bold text-primary">ข้อมูลเทียบราคาตลาดญี่ปุ่น (Yuyu-tei.jp)</span>
+              <span class="badge badge-primary badge-xs text-white">JP Format</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="form-control">
+                <label class="label py-0.5"><span class="label-text text-xs">รหัสการ์ด (เช่น DZ-BT16/021)</span></label>
+                <input 
+                  type="text" 
+                  v-model="formData.card_code" 
+                  placeholder="เช่น DZ-BT16/021" 
+                  class="input input-bordered input-sm w-full" 
+                />
+              </div>
+
+              <div class="form-control">
+                <label class="label py-0.5"><span class="label-text text-xs">ราคาบน Yuyu-tei (หน่วย: เยน 円)</span></label>
+                <input 
+                  type="number" 
+                  v-model="formData.yuyutei_price" 
+                  placeholder="เช่น 320" 
+                  class="input input-bordered input-sm w-full" 
+                />
+              </div>
+            </div>
+
+            <div class="form-control">
+              <label class="label py-0.5">
+                <span class="label-text text-xs">ลิงก์หน้าการ์ดบนเว็บ Yuyu-tei (เว้นว่างได้ ระบบจะใช้รหัสการ์ดสร้างลิงก์ให้อัตโนมัติ)</span>
+              </label>
+              <input 
+                type="url" 
+                v-model="formData.yuyutei_url" 
+                placeholder="https://yuyu-tei.jp/..." 
+                class="input input-bordered input-sm w-full" 
+              />
+            </div>
+          </div>
+
           <div class="grid grid-cols-2 gap-3">
             <div class="form-control">
-              <label class="label py-1"><span class="label-text">ราคา (บาท) *</span></label>
+              <label class="label py-1"><span class="label-text">ราคาหน้าร้าน (บาท) *</span></label>
               <input type="number" step="0.01" v-model="formData.price" class="input input-bordered input-sm sm:input-md w-full" required />
             </div>
             <div class="form-control">
