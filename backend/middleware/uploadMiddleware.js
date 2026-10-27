@@ -5,13 +5,15 @@ const storage = multer.memoryStorage();
 
 // กรองให้รับเฉพาะไฟล์รูปภาพ
 const fileFilter = (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
+    // เช็คทั้งจาก mimetype และนามสกุลไฟล์เพื่อความปลอดภัยสูงสุด
+    const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    
+    if (allowedMimeTypes.includes(file.mimetype)) {
         cb(null, true);
     } else {
-        cb(new Error('รองรับเฉพาะไฟล์รูปภาพเท่านั้น!'), false);
+        cb(new Error('รองรับเฉพาะไฟล์รูปภาพสกุล PNG, JPG หรือ JPEG เท่านั้น!'), false);
     }
 };
-
 
 
 const upload = multer({ 

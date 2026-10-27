@@ -473,7 +473,7 @@ onMounted(async () => {
 
           <div class="form-control">
             <label class="label py-1"><span class="label-text">รูปภาพสินค้า</span></label>
-            <input type="file" @change="handleFileChange" accept="image/*" class="file-input file-input-bordered file-input-sm sm:file-input-md w-full" />
+            <input type="file" @change="handleFileChange" accept=".png, .jpg, .jpeg" class="file-input file-input-bordered file-input-sm sm:file-input-md w-full" />
             
             <div v-if="imagePreview" class="mt-3 flex justify-center">
               <img :src="imagePreview" class="h-36 sm:h-40 object-contain rounded border border-base-300 p-1" />

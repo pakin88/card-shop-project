@@ -122,7 +122,7 @@ const submitOrder = async () => {
             <p class="text-center font-bold text-lg mb-2">ยอดที่ต้องโอน: <span class="text-primary">฿{{ cartStore.totalPrice.toLocaleString() }}</span></p>
             <p class="text-center text-sm text-gray-500 mb-4">(ตัวอย่าง) โอนเงินเข้าบัญชี: กสิกรไทย 123-4-56789-0 นายทดสอบ แวนการ์ด</p>
             <label class="label"><span class="label-text font-semibold text-error">แนบรูปสลิปโอนเงิน *</span></label>
-            <input type="file" @change="handleFileChange" accept="image/*" class="file-input file-input-bordered file-input-primary w-full" required />
+            <input type="file" @change="handleFileChange" accept=".png, .jpg, .jpeg" class="file-input file-input-bordered file-input-primary w-full" required />
           </div>
 
           <div v-if="errorMessage" class="text-error text-center mb-4">{{ errorMessage }}</div>
