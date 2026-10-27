@@ -1,8 +1,6 @@
 const db = require('../config/db');
 const fs = require('fs');
 
-
-
 // ฟังก์ชันช่วยแปลงชื่อหมวดหมู่จากหน้าเว็บ ให้เป็น category_id อัตโนมัติ
 async function getCategoryId(category_id, categoryName) {
     if (category_id) return category_id;
@@ -25,7 +23,6 @@ async function getCategoryId(category_id, categoryName) {
 // 1. ดึงข้อมูลสินค้าทั้งหมด พร้อมดึงชื่อหมวดหมู่จากตาราง categories
 exports.getAllProducts = async (req, res) => {
     try {
-        await ensureYuyuteiColumns();
         const [products] = await db.query(`
             SELECT p.*, c.name AS category, c.name AS category_name 
             FROM products p 
@@ -42,7 +39,6 @@ exports.getAllProducts = async (req, res) => {
 // 2. เพิ่มสินค้าใหม่ (สำหรับ Admin)
 exports.createProduct = async (req, res) => {
     try {
-        await ensureYuyuteiColumns();
         const { name, category, category_id, rarity, price, stock, description, card_code, yuyutei_price, yuyutei_url } = req.body;
         const resolvedCategoryId = await getCategoryId(category_id, category);
         
@@ -82,7 +78,6 @@ exports.createProduct = async (req, res) => {
 // 3. แก้ไขข้อมูลสินค้า (สำหรับ Admin)
 exports.updateProduct = async (req, res) => {
     try {
-        await ensureYuyuteiColumns();
         const { id } = req.params;
         const { name, category, category_id, rarity, price, stock, description, card_code, yuyutei_price, yuyutei_url } = req.body;
         const resolvedCategoryId = await getCategoryId(category_id, category);
