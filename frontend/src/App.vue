@@ -34,7 +34,7 @@ const handleLogout = () => {
 </script>
 
 <template>
-<div data-theme="light" class="min-h-screen flex flex-col bg-base-200 text-base-content">
+  <div data-theme="light" class="min-h-screen flex flex-col bg-base-200 text-base-content">
     <!-- Navbar รองรับทั้งมือถือและคอมพิวเตอร์ -->
     <header class="bg-base-100 shadow-md border-b border-base-300 sticky top-0 z-40">
       <div class="navbar px-3 md:px-8 min-h-[3.5rem] justify-between">
@@ -52,7 +52,7 @@ const handleLogout = () => {
             <button 
               @click="selectFormat(null)" 
               class="btn btn-sm"
-              :class="!route.query.category && route.path === '/' ? 'btn-primary text-black' : 'btn-ghost'"
+              :class="!route.query.category && route.path === '/' ? 'btn-primary text-white font-medium' : 'btn-ghost text-slate-700'"
             >
               ทั้งหมด
             </button>
@@ -62,7 +62,7 @@ const handleLogout = () => {
               :key="format"
               @click="selectFormat(format)"
               class="btn btn-sm"
-              :class="route.query.category === format ? 'btn-primary text-black' : 'btn-ghost'"
+              :class="route.query.category === format ? 'btn-primary text-white font-medium' : 'btn-ghost text-slate-700'"
             >
               {{ format }}
             </button>
@@ -94,29 +94,30 @@ const handleLogout = () => {
               <router-link 
                 v-if="!authStore.isAdmin" 
                 to="/my-orders" 
-                class="btn btn-ghost btn-sm"
+                class="btn btn-ghost btn-sm text-slate-700 font-medium"
               >
                 ประวัติการสั่งซื้อ
               </router-link>
 
               <template v-if="authStore.isAdmin">
-                <router-link to="/admin/orders" class="btn btn-warning btn-sm text-black font-bold">
+                <router-link to="/admin/orders" class="btn btn-warning btn-sm text-slate-900 font-bold shadow-sm">
                   จัดการออเดอร์ (Admin)
                 </router-link>
-                <router-link to="/admin/products" class="btn btn-accent btn-sm text-black font-bold">
+                <router-link to="/admin/products" class="btn btn-accent btn-sm text-slate-900 font-bold shadow-sm">
                   จัดการสินค้า (Admin)
                 </router-link>
               </template>
 
-              <span class="text-sm font-semibold text-success px-2">
+              <span class="text-sm font-semibold text-emerald-600 px-2">
                 {{ authStore.user?.username }}
               </span>
 
-              <button @click="handleLogout" class="btn btn-outline btn-error btn-sm">
+              <button @click="handleLogout" class="btn btn-outline btn-error btn-sm font-medium">
                 ออกจากระบบ
               </button>
             </template>
-<template v-else>
+
+            <template v-else>
               <router-link to="/login" class="btn btn-primary btn-sm text-white font-medium">เข้าสู่ระบบ</router-link>
               <router-link to="/register" class="btn btn-outline btn-primary btn-sm hover:text-white font-medium">สมัครสมาชิก</router-link>
             </template>
@@ -141,7 +142,7 @@ const handleLogout = () => {
         <button 
           @click="selectFormat(null)" 
           class="btn btn-xs shrink-0"
-          :class="!route.query.category && route.path === '/' ? 'btn-primary text-black' : 'btn-ghost bg-base-100'"
+          :class="!route.query.category && route.path === '/' ? 'btn-primary text-white font-medium' : 'btn-ghost bg-base-100 text-slate-700'"
         >
           ทั้งหมด
         </button>
@@ -150,7 +151,7 @@ const handleLogout = () => {
           :key="format"
           @click="selectFormat(format)"
           class="btn btn-xs shrink-0"
-          :class="route.query.category === format ? 'btn-primary text-black' : 'btn-ghost bg-base-100'"
+          :class="route.query.category === format ? 'btn-primary text-white font-medium' : 'btn-ghost bg-base-100 text-slate-700'"
         >
           {{ format }}
         </button>
@@ -160,15 +161,15 @@ const handleLogout = () => {
       <div v-if="isMobileMenuOpen" class="lg:hidden bg-base-100 border-t border-base-300 px-4 py-3 space-y-2 shadow-xl">
         <template v-if="authStore.isLoggedIn">
           <div class="flex items-center justify-between pb-2 mb-2 border-b border-base-200">
-            <span class="text-xs text-gray-400">บัญชีที่เข้าสู่ระบบ:</span>
-            <span class="text-sm font-bold text-success">{{ authStore.user?.username }}</span>
+            <span class="text-xs text-slate-500">บัญชีที่เข้าสู่ระบบ:</span>
+            <span class="text-sm font-bold text-emerald-600">{{ authStore.user?.username }}</span>
           </div>
 
           <router-link 
             v-if="!authStore.isAdmin" 
             to="/my-orders" 
             @click="isMobileMenuOpen = false"
-            class="btn btn-ghost btn-sm w-full justify-start bg-base-200"
+            class="btn btn-ghost btn-sm w-full justify-start bg-base-200 text-slate-800"
           >
             ประวัติการสั่งซื้อ
           </router-link>
@@ -177,20 +178,20 @@ const handleLogout = () => {
             <router-link 
               to="/admin/orders" 
               @click="isMobileMenuOpen = false"
-              class="btn btn-warning btn-sm text-black font-bold w-full"
+              class="btn btn-warning btn-sm text-slate-900 font-bold w-full"
             >
               จัดการออเดอร์ (Admin)
             </router-link>
             <router-link 
               to="/admin/products" 
               @click="isMobileMenuOpen = false"
-              class="btn btn-accent btn-sm text-black font-bold w-full"
+              class="btn btn-accent btn-sm text-slate-900 font-bold w-full"
             >
               จัดการสินค้า (Admin)
             </router-link>
           </div>
 
-          <button @click="handleLogout" class="btn btn-error btn-sm w-full mt-2 text-white">
+          <button @click="handleLogout" class="btn btn-error btn-sm w-full mt-2 text-white font-medium">
             ออกจากระบบ
           </button>
         </template>
@@ -200,14 +201,14 @@ const handleLogout = () => {
             <router-link 
               to="/login" 
               @click="isMobileMenuOpen = false"
-              class="btn btn-primary btn-sm text-white w-full"
+              class="btn btn-primary btn-sm text-white w-full font-medium"
             >
               เข้าสู่ระบบ
             </router-link>
             <router-link 
               to="/register" 
               @click="isMobileMenuOpen = false"
-              class="btn btn-outline btn-primary btn-sm w-full"
+              class="btn btn-outline btn-primary btn-sm w-full hover:text-white font-medium"
             >
               สมัครสมาชิก
             </router-link>
@@ -226,14 +227,14 @@ const handleLogout = () => {
       <div class="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-10 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
         <div>
           <h3 class="text-lg md:text-xl font-extrabold text-primary mb-2 md:mb-3">Vanguard Shop</h3>
-          <p class="text-xs md:text-sm text-black-400 leading-relaxed">
+          <p class="text-xs md:text-sm text-slate-600 leading-relaxed">
             ศูนย์รวมสินค้าการ์ดไฟท์ แวนการ์ด ทั้งการ์ดแยกใบ บ็อกซ์บูสเตอร์ เด็คพร้อมเล่น และอุปกรณ์เสริม ครบทุก Format (D ไทย / D ญี่ปุ่น / Premium) การันตีของแท้ แพ็คกันกระแทกอย่างดีทุกออเดอร์
           </p>
         </div>
 
         <div>
-          <h4 class="font-bold text-sm md:text-base mb-2 md:mb-3">หมวดหมู่ Format สินค้า</h4>
-          <ul class="space-y-1.5 text-xs md:text-sm text-black-400">
+          <h4 class="font-bold text-sm md:text-base mb-2 md:mb-3 text-slate-800">หมวดหมู่ Format สินค้า</h4>
+          <ul class="space-y-1.5 text-xs md:text-sm text-slate-600">
             <li><button @click="selectFormat('แวนการ์ด D ไทย')" class="hover:text-primary transition-colors">- แวนการ์ด D ไทย (Vanguard D TH)</button></li>
             <li><button @click="selectFormat('แวนการ์ด D JP')" class="hover:text-primary transition-colors">- แวนการ์ด D JP (Vanguard D Japan)</button></li>
             <li><button @click="selectFormat('แวนการ์ด Premium')" class="hover:text-primary transition-colors">- แวนการ์ด Premium / V-Series</button></li>
@@ -241,8 +242,8 @@ const handleLogout = () => {
         </div>
 
         <div>
-          <h4 class="font-bold text-sm md:text-base mb-2 md:mb-3">ติดต่อเพจร้าน / สอบถาม</h4>
-          <ul class="space-y-2 text-xs md:text-sm text-black">
+          <h4 class="font-bold text-sm md:text-base mb-2 md:mb-3 text-slate-800">ติดต่อเพจร้าน / สอบถาม</h4>
+          <ul class="space-y-2 text-xs md:text-sm text-slate-700">
             <li class="flex items-center gap-2">
               <span class="badge badge-primary badge-sm text-white">FB</span>
               <a href="https://facebook.com" target="_blank" class="hover:text-primary underline truncate">
@@ -261,7 +262,7 @@ const handleLogout = () => {
         </div>
       </div>
 
-      <div class="bg-base-100 py-4 text-center text-xs text-gray-500 border-t border-base-200 px-4">
+      <div class="bg-base-100 py-4 text-center text-xs text-slate-500 border-t border-base-200 px-4">
         © {{ new Date().getFullYear() }} Vanguard Shop Project. All rights reserved.
       </div>
     </footer>
