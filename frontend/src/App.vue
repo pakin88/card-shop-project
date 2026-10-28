@@ -50,12 +50,12 @@ const handleLogout = () => {
           <!-- ปุ่ม Format สำหรับจอคอมพิวเตอร์ -->
           <div class="hidden lg:flex items-center gap-1">
             <button @click="selectFormat(null)" class="btn btn-sm"
-              :class="!route.query.category && route.path === '/' ? 'btn-primary text-white font-medium' : 'btn-ghost text-slate-700'">
+              :class="!route.query.category && route.path === '/' ? 'btn-primary text-black font-medium' : 'btn-ghost text-slate-700'">
               ทั้งหมด
             </button>
 
             <button v-for="format in vanguardFormats" :key="format" @click="selectFormat(format)" class="btn btn-sm"
-              :class="route.query.category === format ? 'btn-primary text-white font-medium' : 'btn-ghost text-slate-700'">
+              :class="route.query.category === format ? 'btn-primary text-black font-medium' : 'btn-ghost text-slate-700'">
               {{ format }}
             </button>
           </div>
