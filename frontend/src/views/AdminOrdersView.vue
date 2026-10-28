@@ -147,28 +147,28 @@ onMounted(() => {
             <button 
                 @click="activeTab = 'to_ship'" 
                 class="btn btn-xs sm:btn-sm"
-                :class="activeTab === 'to_ship' ? 'btn-primary text-white' : 'btn-ghost bg-base-100'"
+                :class="activeTab === 'to_ship' ? 'btn-primary text-black' : 'btn-ghost bg-base-100'"
             >
                 ที่ต้องจัดส่ง ({{ tabCounts.to_ship }})
             </button>
             <button 
                 @click="activeTab = 'shipped'" 
                 class="btn btn-xs sm:btn-sm"
-                :class="activeTab === 'shipped' ? 'btn-success text-white' : 'btn-ghost bg-base-100'"
+                :class="activeTab === 'shipped' ? 'btn-success text-black' : 'btn-ghost bg-base-100'"
             >
                 จัดส่งแล้ว ({{ tabCounts.shipped }})
             </button>
             <button 
                 @click="activeTab = 'cancelled'" 
                 class="btn btn-xs sm:btn-sm"
-                :class="activeTab === 'cancelled' ? 'btn-error text-white' : 'btn-ghost bg-base-100'"
+                :class="activeTab === 'cancelled' ? 'btn-error text-black' : 'btn-ghost bg-base-100'"
             >
                 ยกเลิกแล้ว ({{ tabCounts.cancelled }})
             </button>
             <button 
                 @click="activeTab = 'all'" 
                 class="btn btn-xs sm:btn-sm"
-                :class="activeTab === 'all' ? 'btn-neutral text-white' : 'btn-ghost bg-base-100'"
+                :class="activeTab === 'all' ? 'btn-neutral text-black' : 'btn-ghost bg-base-100'"
             >
                 ทั้งหมด ({{ tabCounts.all }})
             </button>
@@ -271,7 +271,7 @@ onMounted(() => {
                         </div>
 
                         <div class="flex gap-2 w-full sm:w-auto pt-1 sm:pt-0">
-                            <button @click="updateOrder(order)" class="btn btn-success btn-sm text-white flex-1 sm:flex-initial">
+                            <button @click="updateOrder(order)" class="btn btn-success btn-sm text-black flex-1 sm:flex-initial">
                                 บันทึกการเปลี่ยนแปลง
                             </button>
                             <button @click="deleteOrder(order)" class="btn btn-outline btn-error btn-sm">
