@@ -127,7 +127,7 @@ const submitOrder = async () => {
 
           <div v-if="errorMessage" class="text-error text-center mb-4">{{ errorMessage }}</div>
 
-          <button type="submit" class="btn btn-primary w-full text-white text-lg" :disabled="isSubmitting">
+          <button type="submit" class="btn btn-primary w-full text-black text-lg" :disabled="isSubmitting">
             <span v-if="isSubmitting" class="loading loading-spinner"></span>
             ยืนยันการสั่งซื้อ
           </button>

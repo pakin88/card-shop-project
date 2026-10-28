@@ -562,7 +562,7 @@ onMounted(() => {
 
               <button 
                 v-else
-                class="btn btn-primary btn-sm sm:btn-md text-white font-bold shadow flex-1 sm:flex-initial" 
+                class="btn btn-primary btn-sm sm:btn-md text-black font-bold shadow flex-1 sm:flex-initial" 
                 :disabled="selectedProduct.stock === 0"
                 @click="cartStore.addToCart(selectedProduct); selectedProduct = null;"
               >
