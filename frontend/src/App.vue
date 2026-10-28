@@ -34,7 +34,7 @@ const handleLogout = () => {
 </script>
 
 <template>
-  <div data-theme="dark" class="min-h-screen flex flex-col bg-base-200 text-base-content">
+<div data-theme="light" class="min-h-screen flex flex-col bg-base-200 text-base-content">
     <!-- Navbar รองรับทั้งมือถือและคอมพิวเตอร์ -->
     <header class="bg-base-100 shadow-md border-b border-base-300 sticky top-0 z-40">
       <div class="navbar px-3 md:px-8 min-h-[3.5rem] justify-between">
@@ -52,7 +52,7 @@ const handleLogout = () => {
             <button 
               @click="selectFormat(null)" 
               class="btn btn-sm"
-              :class="!route.query.category && route.path === '/' ? 'btn-primary text-white' : 'btn-ghost'"
+              :class="!route.query.category && route.path === '/' ? 'btn-primary text-black' : 'btn-ghost'"
             >
               ทั้งหมด
             </button>
@@ -62,7 +62,7 @@ const handleLogout = () => {
               :key="format"
               @click="selectFormat(format)"
               class="btn btn-sm"
-              :class="route.query.category === format ? 'btn-primary text-white' : 'btn-ghost'"
+              :class="route.query.category === format ? 'btn-primary text-black' : 'btn-ghost'"
             >
               {{ format }}
             </button>
@@ -142,7 +142,7 @@ const handleLogout = () => {
         <button 
           @click="selectFormat(null)" 
           class="btn btn-xs shrink-0"
-          :class="!route.query.category && route.path === '/' ? 'btn-primary text-white' : 'btn-ghost bg-base-100'"
+          :class="!route.query.category && route.path === '/' ? 'btn-primary text-black' : 'btn-ghost bg-base-100'"
         >
           ทั้งหมด
         </button>
@@ -151,7 +151,7 @@ const handleLogout = () => {
           :key="format"
           @click="selectFormat(format)"
           class="btn btn-xs shrink-0"
-          :class="route.query.category === format ? 'btn-primary text-white' : 'btn-ghost bg-base-100'"
+          :class="route.query.category === format ? 'btn-primary text-black' : 'btn-ghost bg-base-100'"
         >
           {{ format }}
         </button>
