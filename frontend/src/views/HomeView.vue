@@ -240,7 +240,7 @@ onMounted(() => {
         <button 
           v-if="authStore.isAdmin" 
           @click="goToAddProduct" 
-          class="btn btn-primary btn-sm text-white w-full sm:w-auto"
+          class="btn btn-primary btn-sm text-black w-full sm:w-auto"
         >
           + เพิ่มสินค้าใหม่
         </button>
