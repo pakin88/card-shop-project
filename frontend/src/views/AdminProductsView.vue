@@ -481,7 +481,7 @@ onMounted(async () => {
 
           <div class="flex justify-end space-x-2 pt-4 border-t border-base-200 mt-4">
             <button type="button" @click="closeModal" class="btn btn-ghost btn-sm sm:btn-md text-slate-600">ยกเลิก</button>
-            <button type="submit" class="btn btn-primary btn-sm sm:btn-md text-white font-semibold" :disabled="isSubmitting">
+            <button type="submit" class="btn btn-primary btn-sm sm:btn-md text-black font-semibold" :disabled="isSubmitting">
               <span v-if="isSubmitting" class="loading loading-spinner"></span>
               บันทึกข้อมูล
             </button>

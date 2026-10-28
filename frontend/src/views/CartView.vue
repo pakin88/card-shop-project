@@ -28,7 +28,7 @@ const getImageUrl = (img) => {
 
     <!-- ถ้าไม่มีสินค้าในตะกร้า -->
     <div v-if="cartStore.items.length === 0" class="text-center py-12 bg-base-100 rounded-xl shadow-sm border border-gray-100">
-      <h2 class="text-2xl text-gray-500 mb-4">ตะกร้าว่างเปล่า</h2>
+      <h2 class="text-2xl text-white mb-4">ตะกร้าว่างเปล่า</h2>
       <router-link to="/" class="btn btn-primary">กลับไปเลือกซื้อการ์ด</router-link>
     </div>
 

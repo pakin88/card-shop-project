@@ -213,15 +213,15 @@ onMounted(() => {
       <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 sm:gap-4 bg-base-100 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl shadow-lg border border-base-300">
         <div class="px-2 sm:px-3 py-0.5 sm:py-1">
           <h3 class="font-bold text-xs sm:text-sm">รับประกันสินค้าแท้ 100%</h3>
-          <p class="text-[11px] sm:text-xs text-gray-400">คัดสภาพสินค้าคุณภาพทุกชิ้นก่อนจัดส่ง</p>
+          <p class="text-[11px] sm:text-xs text-gray-900">คัดสภาพสินค้าคุณภาพทุกชิ้นก่อนจัดส่ง</p>
         </div>
         <div class="px-2 sm:px-3 py-0.5 sm:py-1 border-t md:border-t-0 md:border-l border-base-200 pt-2 md:pt-1">
           <h3 class="font-bold text-xs sm:text-sm">เทียบราคาตลาดญี่ปุ่น (Yuyu-tei)</h3>
-          <p class="text-[11px] sm:text-xs text-gray-400">แสดงเรทราคาการ์ดญี่ปุ่นโปร่งใส ตรวจสอบได้จริง</p>
+          <p class="text-[11px] sm:text-xs text-gray-900">แสดงเรทราคาการ์ดญี่ปุ่นโปร่งใส ตรวจสอบได้จริง</p>
         </div>
         <div class="px-2 sm:px-3 py-0.5 sm:py-1 border-t md:border-t-0 md:border-l border-base-200 pt-2 md:pt-1">
           <h3 class="font-bold text-xs sm:text-sm">จัดส่งไว เช็คเลขพัสดุได้</h3>
-          <p class="text-[11px] sm:text-xs text-gray-400">แจ้งเตือนเลขพัสดุทางอีเมลอัตโนมัติ</p>
+          <p class="text-[11px] sm:text-xs text-gray-900">แจ้งเตือนเลขพัสดุทางอีเมลอัตโนมัติ</p>
         </div>
       </div>
     </div>
@@ -553,7 +553,7 @@ onMounted(() => {
                   แก้ไขสินค้า
                 </button>
                 <button 
-                  class="btn btn-error btn-sm sm:btn-md text-white font-bold shadow-sm" 
+                  class="btn btn-error btn-sm sm:btn-md text-black font-bold shadow-sm" 
                   @click="deleteProductFromHome(selectedProduct.id, selectedProduct.name)"
                 >
                   ลบสินค้า

@@ -70,7 +70,7 @@ const handleRegister = async () => {
           </div>
 
           <div class="card-actions justify-center mt-6">
-            <button type="submit" class="btn btn-primary w-full text-white" :disabled="isSubmitting">
+            <button type="submit" class="btn btn-primary w-full text-black" :disabled="isSubmitting">
               <span v-if="isSubmitting" class="loading loading-spinner"></span>
               สมัครสมาชิก
             </button>

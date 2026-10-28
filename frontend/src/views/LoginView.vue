@@ -48,7 +48,7 @@ const handleLogin = async () => {
 
           <!-- ปุ่มกดยืนยัน -->
           <div class="card-actions justify-center mt-6">
-            <button type="submit" class="btn btn-primary w-full text-white">เข้าสู่ระบบ</button>
+            <button type="submit" class="btn btn-primary w-full text-black">เข้าสู่ระบบ</button>
           </div>
         </form>
       </div>

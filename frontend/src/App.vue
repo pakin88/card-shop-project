@@ -191,7 +191,7 @@ const handleLogout = () => {
             </router-link>
           </div>
 
-          <button @click="handleLogout" class="btn btn-outline btn-error btn-sm w-full mt-2">
+          <button @click="handleLogout" class="btn btn-error btn-sm w-full mt-2 text-white">
             ออกจากระบบ
           </button>
         </template>
@@ -227,14 +227,14 @@ const handleLogout = () => {
       <div class="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-10 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
         <div>
           <h3 class="text-lg md:text-xl font-extrabold text-primary mb-2 md:mb-3">Vanguard Shop</h3>
-          <p class="text-xs md:text-sm text-gray-400 leading-relaxed">
+          <p class="text-xs md:text-sm text-black-400 leading-relaxed">
             ศูนย์รวมสินค้าการ์ดไฟท์ แวนการ์ด ทั้งการ์ดแยกใบ บ็อกซ์บูสเตอร์ เด็คพร้อมเล่น และอุปกรณ์เสริม ครบทุก Format (D ไทย / D ญี่ปุ่น / Premium) การันตีของแท้ แพ็คกันกระแทกอย่างดีทุกออเดอร์
           </p>
         </div>
 
         <div>
           <h4 class="font-bold text-sm md:text-base mb-2 md:mb-3">หมวดหมู่ Format สินค้า</h4>
-          <ul class="space-y-1.5 text-xs md:text-sm text-gray-400">
+          <ul class="space-y-1.5 text-xs md:text-sm text-black-400">
             <li><button @click="selectFormat('แวนการ์ด D ไทย')" class="hover:text-primary transition-colors">- แวนการ์ด D ไทย (Vanguard D TH)</button></li>
             <li><button @click="selectFormat('แวนการ์ด D JP')" class="hover:text-primary transition-colors">- แวนการ์ด D JP (Vanguard D Japan)</button></li>
             <li><button @click="selectFormat('แวนการ์ด Premium')" class="hover:text-primary transition-colors">- แวนการ์ด Premium / V-Series</button></li>
@@ -243,7 +243,7 @@ const handleLogout = () => {
 
         <div>
           <h4 class="font-bold text-sm md:text-base mb-2 md:mb-3">ติดต่อเพจร้าน / สอบถาม</h4>
-          <ul class="space-y-2 text-xs md:text-sm text-gray-400">
+          <ul class="space-y-2 text-xs md:text-sm text-black">
             <li class="flex items-center gap-2">
               <span class="badge badge-primary badge-sm text-white">FB</span>
               <a href="https://facebook.com" target="_blank" class="hover:text-primary underline truncate">
