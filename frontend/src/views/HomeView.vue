@@ -385,13 +385,13 @@ onMounted(() => {
               <!-- ปุ่มสำหรับ Admin -->
               <div v-if="authStore.isAdmin" class="flex gap-1 w-full sm:w-auto">
                 <button 
-                  class="btn btn-info btn-xs text-white flex-1 sm:flex-initial" 
+                  class="btn btn-info btn-xs text-black flex-1 sm:flex-initial" 
                   @click="goToEditProduct(product.id)"
                 >
                   แก้ไข
                 </button>
                 <button 
-                  class="btn btn-error btn-xs text-white flex-1 sm:flex-initial" 
+                  class="btn btn-error btn-xs text-black flex-1 sm:flex-initial" 
                   @click="deleteProductFromHome(product.id, product.name)"
                 >
                   ลบ
@@ -401,7 +401,7 @@ onMounted(() => {
               <!-- ปุ่มสำหรับลูกค้าทั่วไป -->
               <button 
                 v-else
-                class="btn btn-primary btn-xs sm:btn-sm text-white w-full sm:w-auto" 
+                class="btn btn-primary btn-xs sm:btn-sm text-black w-full sm:w-auto" 
                 :disabled="product.stock === 0"
                 @click="cartStore.addToCart(product)"
               >
@@ -547,7 +547,7 @@ onMounted(() => {
 
               <template v-if="authStore.isAdmin">
                 <button 
-                  class="btn btn-info btn-sm sm:btn-md text-slate-900 font-bold shadow-sm" 
+                  class="btn btn-info btn-sm sm:btn-md text-black font-bold shadow-sm" 
                   @click="goToEditProduct(selectedProduct.id)"
                 >
                   แก้ไขสินค้า
