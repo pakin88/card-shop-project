@@ -119,7 +119,7 @@ const handleLogout = () => {
 
             <template v-else>
               <router-link to="/login" class="btn btn-primary btn-sm text-white">เข้าสู่ระบบ</router-link>
-              <router-link to="/register" class="btn btn-outline btn-primary btn-sm">สมัครสมาชิก</router-link>
+              <router-link to="/register" class="btn  btn-primary btn-sm text-black">สมัครสมาชิก</router-link>
             </template>
           </div>
 
