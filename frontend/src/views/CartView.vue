@@ -81,7 +81,7 @@ const getImageUrl = (img) => {
           <span>฿{{ cartStore.totalPrice.toLocaleString() }}</span>
         </div>
 
-        <button @click="proceedToCheckout" class="btn btn-primary w-full text-white text-lg">
+        <button @click="proceedToCheckout" class="btn btn-primary w-full text-black text-lg">
           ดำเนินการชำระเงิน
         </button>
       </div>
