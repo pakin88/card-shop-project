@@ -468,27 +468,27 @@ onMounted(() => {
               </div>
 
               <!-- กล่องเปรียบเทียบราคาตลาดญี่ปุ่น (Yuyu-tei.jp) -->
-              <div 
+            <div 
                 v-if="selectedProduct.yuyutei_price || selectedProduct.card_code || selectedProduct.yuyutei_url" 
-                class="bg-base-200 p-3.5 rounded-xl border border-primary/40 mb-3 sm:mb-4 space-y-2"
+                class="bg-amber-50/70 p-3.5 rounded-xl border border-amber-300 mb-3 sm:mb-4 space-y-2"
               >
-                <div class="flex items-center justify-between border-b border-base-300 pb-2">
-                  <span class="text-xs sm:text-sm font-bold text-warning">เปรียบเทียบราคาตลาดญี่ปุ่น (Yuyu-tei)</span>
-                  <span v-if="selectedProduct.card_code" class="text-xs font-mono text-gray-300">
+                <div class="flex items-center justify-between border-b border-amber-200 pb-2">
+                  <span class="text-xs sm:text-sm font-bold text-amber-900">เปรียบเทียบราคาตลาดญี่ปุ่น (Yuyu-tei)</span>
+                  <span v-if="selectedProduct.card_code" class="text-xs font-mono font-semibold text-slate-600">
                     รหัส: {{ selectedProduct.card_code }}
                   </span>
                 </div>
 
                 <div v-if="selectedProduct.yuyutei_price" class="grid grid-cols-2 gap-2 text-xs sm:text-sm py-1">
                   <div>
-                    <p class="text-gray-400 text-xs">ราคาบนเว็บ Yuyu-tei:</p>
-                    <p class="font-bold text-base sm:text-lg text-white">
+                    <p class="text-slate-600 text-xs font-medium">ราคาบนเว็บ Yuyu-tei:</p>
+                    <p class="font-extrabold text-base sm:text-lg text-slate-900">
                       {{ Number(selectedProduct.yuyutei_price).toLocaleString() }} 円
                     </p>
                   </div>
                   <div>
-                    <p class="text-gray-400 text-xs">คิดเป็นเงินไทย (เรท {{ jpyToThbRate.toFixed(3) }}):</p>
-                    <p class="font-bold text-base sm:text-lg text-warning">
+                    <p class="text-slate-600 text-xs font-medium">คิดเป็นเงินไทย (เรท {{ jpyToThbRate.toFixed(3) }}):</p>
+                    <p class="font-extrabold text-base sm:text-lg text-amber-700">
                       ~฿{{ convertYenToThb(selectedProduct.yuyutei_price).toLocaleString() }}
                     </p>
                   </div>
@@ -498,17 +498,17 @@ onMounted(() => {
                 <div v-if="selectedProduct.yuyutei_price" class="text-xs pt-1">
                   <span 
                     v-if="Number(selectedProduct.price) < convertYenToThb(selectedProduct.yuyutei_price)" 
-                    class="badge badge-success badge-sm text-white"
+                    class="badge badge-success badge-sm text-white font-semibold"
                   >
                     ราคาหน้าร้านถูกกว่าญี่ปุ่นประมาณ ฿{{ (convertYenToThb(selectedProduct.yuyutei_price) - Number(selectedProduct.price)).toLocaleString() }}
                   </span>
                   <span 
                     v-else-if="Number(selectedProduct.price) === convertYenToThb(selectedProduct.yuyutei_price)" 
-                    class="badge badge-info badge-sm text-white"
+                    class="badge badge-info badge-sm text-slate-900 font-semibold"
                   >
                     ราคาเท่ากับเรทตลาดญี่ปุ่น
                   </span>
-                  <span v-else class="text-gray-400">
+                  <span v-else class="text-slate-500 font-medium">
                     * ราคาหน้าร้านรวมค่าขนส่งและภาษีนำเข้าจากญี่ปุ่นแล้ว
                   </span>
                 </div>
@@ -518,40 +518,42 @@ onMounted(() => {
                     :href="getYuyuteiLink(selectedProduct)" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    class="btn btn-outline btn-warning btn-xs sm:btn-sm w-full"
+                    class="btn btn-outline border-amber-500 text-amber-900 hover:bg-amber-500 hover:text-white btn-xs sm:btn-sm w-full font-semibold"
                   >
                     เปิดดูราคาการ์ดใบนี้บนเว็บ Yuyu-tei.jp
                   </a>
                 </div>
               </div>
 
-              <div class="bg-base-200 p-3 sm:p-4 rounded-xl mb-3 sm:mb-4">
-                <h3 class="text-xs sm:text-sm font-semibold text-gray-400 mb-1">รายละเอียดสินค้า:</h3>
-                <p class="text-xs sm:text-sm whitespace-pre-line">
+              <!-- รายละเอียดสินค้า -->
+              <div class="bg-slate-100 p-3 sm:p-4 rounded-xl mb-3 sm:mb-4 border border-slate-200">
+                <h3 class="text-xs sm:text-sm font-bold text-slate-700 mb-1">รายละเอียดสินค้า:</h3>
+                <p class="text-xs sm:text-sm text-slate-800 whitespace-pre-line leading-relaxed">
                   {{ selectedProduct.description || 'ไม่มีรายละเอียดเพิ่มเติมสำหรับสินค้านี้' }}
                 </p>
               </div>
 
-              <p class="text-xs sm:text-sm">
+              <p class="text-xs sm:text-sm text-slate-700 font-medium">
                 สถานะคลังสินค้า: 
-                <span :class="selectedProduct.stock > 0 ? 'text-success font-bold' : 'text-error font-bold'">
+                <span :class="selectedProduct.stock > 0 ? 'text-emerald-700 font-bold' : 'text-rose-600 font-bold'">
                   {{ selectedProduct.stock > 0 ? `มีสินค้าพร้อมส่ง (${selectedProduct.stock} ชิ้น)` : 'สินค้าหมดชั่วคราว' }}
                 </span>
               </p>
             </div>
 
-            <div class="pt-3 sm:pt-4 border-t border-base-300 flex flex-wrap justify-end gap-2">
-              <button @click="selectedProduct = null" class="btn btn-ghost btn-sm sm:btn-md">ปิดหน้าต่าง</button>
+            <!-- ปุ่มด้านล่าง Modal ปรับสีให้เห็นชัดเจน -->
+            <div class="pt-3 sm:pt-4 border-t border-base-200 flex flex-wrap justify-end gap-2">
+              <button @click="selectedProduct = null" class="btn btn-ghost btn-sm sm:btn-md text-slate-700 font-semibold">ปิดหน้าต่าง</button>
 
               <template v-if="authStore.isAdmin">
                 <button 
-                  class="btn btn-info btn-sm sm:btn-md text-white" 
+                  class="btn btn-info btn-sm sm:btn-md text-slate-900 font-bold shadow-sm" 
                   @click="goToEditProduct(selectedProduct.id)"
                 >
                   แก้ไขสินค้า
                 </button>
                 <button 
-                  class="btn btn-error btn-sm sm:btn-md text-white" 
+                  class="btn btn-error btn-sm sm:btn-md text-white font-bold shadow-sm" 
                   @click="deleteProductFromHome(selectedProduct.id, selectedProduct.name)"
                 >
                   ลบสินค้า
@@ -560,7 +562,7 @@ onMounted(() => {
 
               <button 
                 v-else
-                class="btn btn-primary btn-sm sm:btn-md text-white flex-1 sm:flex-initial" 
+                class="btn btn-primary btn-sm sm:btn-md text-white font-bold shadow flex-1 sm:flex-initial" 
                 :disabled="selectedProduct.stock === 0"
                 @click="cartStore.addToCart(selectedProduct); selectedProduct = null;"
               >
