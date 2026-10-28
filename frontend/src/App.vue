@@ -116,10 +116,9 @@ const handleLogout = () => {
                 ออกจากระบบ
               </button>
             </template>
-
-            <template v-else>
-              <router-link to="/login" class="btn btn-primary btn-sm text-white">เข้าสู่ระบบ</router-link>
-              <router-link to="/register" class="btn  btn-primary btn-sm text-black">สมัครสมาชิก</router-link>
+<template v-else>
+              <router-link to="/login" class="btn btn-primary btn-sm text-white font-medium">เข้าสู่ระบบ</router-link>
+              <router-link to="/register" class="btn btn-outline btn-primary btn-sm hover:text-white font-medium">สมัครสมาชิก</router-link>
             </template>
           </div>
 
