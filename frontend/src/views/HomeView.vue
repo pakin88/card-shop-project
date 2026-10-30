@@ -11,7 +11,6 @@ const router = useRouter();
 const route = useRoute();
 
 const API_URL = 'https://card-shop-project.onrender.com';
-
 const BANNER_IMAGE = 'https://i.redd.it/4dxrl7dpjfgd1.jpg';
 
 const products = ref([]);
@@ -19,7 +18,9 @@ const loading = ref(true);
 const error = ref(null);
 const selectedProduct = ref(null);
 
-// อัตราแลกเปลี่ยนเงินเยนเป็นเงินบาท (ค่าเริ่มต้น 0.23 บาทต่อ 1 เยน และดึงค่าจริงอัตโนมัติเมื่อเปิดหน้าเว็บ)
+// สถานะเช็คว่าผู้ใช้เริ่มใช้ตัวกรองหรือยัง (ถ้าเริ่มใช้แล้ว จะซ่อนแบนเนอร์ถาวรเพื่อไม่ให้เกะกะ)
+const isBrowsing = ref(!!route.query.category);
+
 const jpyToThbRate = ref(0.23);
 
 const nonSingleTypes = [
@@ -32,13 +33,11 @@ const rarityOptions = [
   'RRR', 'RR', 'R', 'C', 'OR', 'SP', 'SEC', 'DSR', 'FFR', 'FR', 'SR', 'PR'
 ];
 
-// ตัวแปรสำหรับค้นหาและกรองสินค้า
 const searchQuery = ref('');
 const selectedFormat = ref(route.query.category || '');
 const selectedProductType = ref('');
 const selectedRarity = ref('');
 
-// ดึงอัตราแลกเปลี่ยนเงินเยนล่าสุดอัตโนมัติ
 const fetchExchangeRate = async () => {
   try {
     const res = await axios.get('https://open.er-api.com/v6/latest/JPY');
@@ -46,18 +45,15 @@ const fetchExchangeRate = async () => {
       jpyToThbRate.value = Number(res.data.rates.THB);
     }
   } catch (err) {
-    // หากดึง API ค่าเงินไม่สำเร็จ ให้ใช้เรทมาตรฐาน 0.23 บาทต่อเยน
     jpyToThbRate.value = 0.23;
   }
 };
 
-// คำนวณราคาเยนเป็นเงินบาทโดยประมาณ
 const convertYenToThb = (yen) => {
   if (!yen) return 0;
   return Math.round(Number(yen) * jpyToThbRate.value);
 };
 
-// สร้างลิงก์ไปหน้าเว็บ Yuyu-tei (ถ้าไม่ได้วางลิงก์ตรงไว้ จะสร้างลิงก์ค้นหาจากรหัสการ์ดหรือชื่อการ์ดให้อัตโนมัติ)
 const getYuyuteiLink = (product) => {
   if (product.yuyutei_url && product.yuyutei_url.trim() !== '') {
     return product.yuyutei_url.trim();
@@ -66,14 +62,12 @@ const getYuyuteiLink = (product) => {
   return `https://yuyu-tei.jp/sell/vg/s/search?search_word=${encodeURIComponent(keyword)}`;
 };
 
-// ตรวจสอบประเภทสินค้า
 const getProductType = (product) => {
   if (!product.rarity || product.rarity === '-') return 'อุปกรณ์เสริม';
   if (nonSingleTypes.includes(product.rarity)) return product.rarity;
   return 'การ์ดแยกใบ';
 };
 
-// ดึงค่าความแรร์เฉพาะการ์ดแยกใบ
 const getProductRarity = (product) => {
   if (getProductType(product) !== 'การ์ดแยกใบ') return null;
   return product.rarity;
@@ -82,6 +76,9 @@ const getProductRarity = (product) => {
 watch(
   () => route.query.category,
   (newCategory) => {
+    if (newCategory) {
+      isBrowsing.value = true;
+    }
     selectedFormat.value = newCategory || '';
   }
 );
@@ -93,6 +90,7 @@ watch(selectedProductType, (newType) => {
 });
 
 const handleFormatChange = () => {
+  isBrowsing.value = true; // เมื่อกดเปลี่ยน Format ให้ซ่อนแบนเนอร์
   if (selectedFormat.value) {
     router.push({ path: '/', query: { category: selectedFormat.value } });
   } else {
@@ -105,6 +103,7 @@ const clearFilters = () => {
   selectedFormat.value = '';
   selectedProductType.value = '';
   selectedRarity.value = '';
+  isBrowsing.value = true; // ล้างตัวกรองก็ยังคงซ่อนแบนเนอร์ไว้ เพื่อความสมูทในการดูสินค้า
   router.push({ path: '/' });
 };
 
@@ -167,6 +166,7 @@ const deleteProductFromHome = async (id, name) => {
 };
 
 const scrollToProducts = () => {
+  isBrowsing.value = true; // เมื่อกดปุ่ม "เลือกดูสินค้าล่าสุด" ให้ซ่อนแบนเนอร์และแสดงสินค้าเต็มจอ
   document.getElementById('latest-products')?.scrollIntoView({ behavior: 'smooth' });
 };
 
@@ -179,7 +179,7 @@ onMounted(() => {
 <template>
   <div>
     <!-- 1. Hero Banner รองรับหน้าจอมือถือ -->
-    <div class="relative bg-base-300 overflow-hidden border-b border-base-300">
+    <div v-if="!isBrowsing" class="relative bg-base-300 overflow-hidden border-b border-base-300">
       <div 
         class="h-[280px] sm:h-[360px] md:h-[460px] w-full bg-cover bg-top relative flex items-center justify-center"
         :style="`background-image: linear-gradient(to bottom, rgba(15, 23, 42, 0.45), rgba(15, 23, 42, 0.92)), url('${BANNER_IMAGE}');`"
@@ -209,7 +209,7 @@ onMounted(() => {
     </div>
 
     <!-- 2. แถบจุดเด่นร้านค้า -->
-    <div class="max-w-7xl mx-auto px-3 sm:px-6 -mt-4 sm:-mt-6 relative z-20">
+    <div v-if="!isBrowsing" class="max-w-7xl mx-auto px-3 sm:px-6 -mt-4 sm:-mt-6 relative z-20">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 sm:gap-4 bg-base-100 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl shadow-lg border border-base-300">
         <div class="px-2 sm:px-3 py-0.5 sm:py-1">
           <h3 class="font-bold text-xs sm:text-sm">รับประกันสินค้าแท้ 100%</h3>
@@ -227,7 +227,7 @@ onMounted(() => {
     </div>
 
     <!-- 3. ส่วนแสดงรายการสินค้าล่าสุด + ตัวค้นหา -->
-    <div id="latest-products" class="p-3 sm:p-6 max-w-7xl mx-auto mt-4 sm:mt-6">
+  <div id="latest-products" class="p-3 sm:p-6 max-w-7xl mx-auto" :class="isBrowsing ? 'pt-4 sm:pt-6' : 'mt-4 sm:mt-6'">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 sm:mb-6 border-b border-base-300 pb-3 sm:pb-4">
         <div>
           <h2 class="text-xl sm:text-2xl md:text-3xl font-bold flex flex-wrap items-center gap-2">
@@ -240,7 +240,7 @@ onMounted(() => {
         <button 
           v-if="authStore.isAdmin" 
           @click="goToAddProduct" 
-          class="btn btn-primary btn-sm text-black w-full sm:w-auto"
+          class="btn btn-outline btn-primary btn-sm text-black w-full sm:w-auto hover:text-white hover:bg-green-500 p-2"
         >
           + เพิ่มสินค้าใหม่
         </button>
@@ -251,6 +251,7 @@ onMounted(() => {
         <input 
           type="text" 
           v-model="searchQuery" 
+          @input="isBrowsing = true"
           placeholder="ค้นหาชื่อสินค้า หรือรหัสการ์ด (เช่น DZ-BT16)..." 
           class="input input-bordered input-sm sm:input-md w-full lg:flex-1"
         />
@@ -272,6 +273,7 @@ onMounted(() => {
           <!-- เลือกประเภทสินค้า -->
           <select 
             v-model="selectedProductType" 
+            @change="isBrowsing = true"
             class="select select-bordered select-sm sm:select-md w-full lg:w-48 text-xs sm:text-sm"
           >
             <option value="">ทุกประเภทสินค้า</option>
@@ -285,6 +287,7 @@ onMounted(() => {
           <select 
             v-if="!selectedProductType || selectedProductType === 'การ์ดแยกใบ'"
             v-model="selectedRarity" 
+            @change="isBrowsing = true"
             class="select select-bordered select-sm sm:select-md w-full lg:w-44 text-xs sm:text-sm col-span-2 sm:col-span-1"
           >
             <option value="">ความแรร์ทั้งหมด</option>
@@ -351,7 +354,7 @@ onMounted(() => {
               {{ product.name }}
             </h2>
             
-            <div class="flex flex-wrap justify-between items-center gap-1 text-[10px] sm:text-xs text-gray-400 my-1">
+            <div class="flex flex-wrap justify-between items-center gap-1 text-[10px] sm:text-xs text-gray-700 my-1">
               <span class="truncate max-w-[85px] sm:max-w-[140px]">{{ product.category_name || product.category || 'ไม่ระบุ' }}</span>
               <span v-if="getProductRarity(product)" class="badge badge-outline badge-xs sm:badge-sm">
                 {{ getProductRarity(product) }}
@@ -361,7 +364,6 @@ onMounted(() => {
               </span>
             </div>
 
-            <!-- กล่องแสดงราคาเทียบเว็บญี่ปุ่น Yuyu-tei บนหน้าการ์ดสินค้า -->
             <div 
               v-if="product.yuyutei_price" 
               class="bg-base-200/90 border border-base-300 rounded-lg px-2 py-1.5 my-1 text-[10px] sm:text-xs"
@@ -382,7 +384,6 @@ onMounted(() => {
                 </p>
               </div>
               
-              <!-- ปุ่มสำหรับ Admin -->
               <div v-if="authStore.isAdmin" class="flex gap-1 w-full sm:w-auto">
                 <button 
                   class="btn btn-info btn-xs text-black flex-1 sm:flex-initial" 
@@ -398,7 +399,6 @@ onMounted(() => {
                 </button>
               </div>
 
-              <!-- ปุ่มสำหรับลูกค้าทั่วไป -->
               <button 
                 v-else
                 class="btn btn-primary btn-xs sm:btn-sm text-black w-full sm:w-auto" 
@@ -467,8 +467,7 @@ onMounted(() => {
                 <span class="text-xs text-gray-400">ราคาจำหน่ายหน้าร้าน</span>
               </div>
 
-              <!-- กล่องเปรียบเทียบราคาตลาดญี่ปุ่น (Yuyu-tei.jp) -->
-            <div 
+              <div 
                 v-if="selectedProduct.yuyutei_price || selectedProduct.card_code || selectedProduct.yuyutei_url" 
                 class="bg-amber-50/70 p-3.5 rounded-xl border border-amber-300 mb-3 sm:mb-4 space-y-2"
               >
@@ -494,7 +493,6 @@ onMounted(() => {
                   </div>
                 </div>
 
-                <!-- แสดงส่วนต่างราคา -->
                 <div v-if="selectedProduct.yuyutei_price" class="text-xs pt-1">
                   <span 
                     v-if="Number(selectedProduct.price) < convertYenToThb(selectedProduct.yuyutei_price)" 
@@ -525,7 +523,6 @@ onMounted(() => {
                 </div>
               </div>
 
-              <!-- รายละเอียดสินค้า -->
               <div class="bg-slate-100 p-3 sm:p-4 rounded-xl mb-3 sm:mb-4 border border-slate-200">
                 <h3 class="text-xs sm:text-sm font-bold text-slate-700 mb-1">รายละเอียดสินค้า:</h3>
                 <p class="text-xs sm:text-sm text-slate-800 whitespace-pre-line leading-relaxed">
@@ -541,19 +538,18 @@ onMounted(() => {
               </p>
             </div>
 
-            <!-- ปุ่มด้านล่าง Modal ปรับสีให้เห็นชัดเจน -->
             <div class="pt-3 sm:pt-4 border-t border-base-200 flex flex-wrap justify-end gap-2">
               <button @click="selectedProduct = null" class="btn btn-ghost btn-sm sm:btn-md text-slate-700 font-semibold">ปิดหน้าต่าง</button>
 
               <template v-if="authStore.isAdmin">
                 <button 
-                  class="btn btn-info btn-sm sm:btn-md text-black font-bold shadow-sm" 
+                  class="btn btn-info btn-sm sm:btn-md text-slate-900 font-bold shadow-sm" 
                   @click="goToEditProduct(selectedProduct.id)"
                 >
                   แก้ไขสินค้า
                 </button>
                 <button 
-                  class="btn btn-error btn-sm sm:btn-md text-black font-bold shadow-sm" 
+                  class="btn btn-error btn-sm sm:btn-md text-white font-bold shadow-sm" 
                   @click="deleteProductFromHome(selectedProduct.id, selectedProduct.name)"
                 >
                   ลบสินค้า

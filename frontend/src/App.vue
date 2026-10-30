@@ -9,6 +9,11 @@ const cartStore = useCartStore();
 const router = useRouter();
 const route = useRoute();
 
+// ปุ่มโลโก้ ใช้สำหรับรีเซ็ตหน้าจอเพื่อเรียกแบนเนอร์กลับมา
+const goHome = () => {
+  isMobileMenuOpen.value = false;
+  window.location.href = '/'; 
+};
 const isMobileMenuOpen = ref(false);
 
 const vanguardFormats = [
@@ -41,7 +46,7 @@ const handleLogout = () => {
 
         <!-- ฝั่งซ้าย: โลโก้ร้าน + หมวดหมู่ Format (แสดงบนจอคอม) -->
         <div class="flex items-center gap-1 md:gap-2">
-          <button @click="selectFormat(null)" class="btn btn-ghost text-lg md:text-xl font-extrabold text-primary px-2">
+          <button @click="goHome" class="btn btn-ghost text-lg md:text-xl font-extrabold text-primary px-2">
             Vanguard Shop
           </button>
 
@@ -99,15 +104,17 @@ const handleLogout = () => {
                 {{ authStore.user?.username }}
               </span>
 
-              <button @click="handleLogout" class="btn btn-outline btn-error btn-sm font-medium">
+              <button @click="handleLogout" class="btn btn-outline btn-error btn-sm font-medium hover:text-white hover:bg-error p-2">
                 ออกจากระบบ
               </button>
             </template>
 
             <template v-else>
-              <router-link to="/login" class="btn btn-primary btn-sm text-white font-medium">เข้าสู่ระบบ</router-link>
+              <router-link to="/login" class="btn  btn-primary btn-sm text-white font-medium ">
+                เข้าสู่ระบบ
+              </router-link>
               <router-link to="/register"
-                class="btn btn-outline btn-primary btn-sm hover:text-white active:text-white focus:text-white font-medium">
+                class="btn btn-outline btn-success btn-sm hover:text-white active:text-white focus:text-white font-medium text-bold">
                 สมัครสมาชิก
               </router-link>
             </template>
@@ -164,7 +171,7 @@ const handleLogout = () => {
             </router-link>
           </div>
 
-          <button @click="handleLogout" class="btn btn-error btn-sm w-full mt-2 text-white font-medium">
+          <button @click="handleLogout" class="btn btn-error btn-sm w-full mt-2 text-white font-medium ">
             ออกจากระบบ
           </button>
         </template>
@@ -172,11 +179,11 @@ const handleLogout = () => {
         <template v-else>
           <div class="grid grid-cols-2 gap-2">
             <router-link to="/login" @click="isMobileMenuOpen = false"
-              class="btn btn-primary btn-sm text-white w-full font-medium">
+              class="btn btn-primary btn-sm text-white w-full font-medium hover:bg-primary-focus">
               เข้าสู่ระบบ
             </router-link>
             <router-link to="/register" @click="isMobileMenuOpen = false"
-              class="btn btn-outline btn-primary btn-sm w-full hover:text-white font-medium">
+              class="btn btn-outline btn-success btn-sm w-full hover:text-white font-medium">
               สมัครสมาชิก
             </router-link>
           </div>

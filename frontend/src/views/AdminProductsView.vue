@@ -244,7 +244,7 @@ onMounted(async () => {
   <div class="p-3 sm:p-6 max-w-6xl mx-auto">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
       <h1 class="text-2xl sm:text-3xl font-bold text-slate-900">จัดการคลังสินค้า (Admin)</h1>
-      <button @click="openAddModal" class="btn btn-primary btn-sm sm:btn-md text-white shadow font-semibold w-full sm:w-auto">
+      <button @click="openAddModal" class="btn btn-primary btn-sm sm:btn-md text-black p-2 font-semibold w-full sm:w-auto hover:text-white hover:bg-green-500">
         + เพิ่มสินค้าใหม่
       </button>
     </div>
