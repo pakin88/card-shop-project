@@ -208,3 +208,58 @@ exports.deleteOrder = async (req, res) => {
         if (connection) connection.release();
     }
 };
+
+// 6. ลูกค้ายกเลิกคำสั่งซื้อของตนเอง + คืนสต็อกสินค้า
+exports.cancelMyOrder = async (req, res) => {
+    let connection;
+    try {
+        connection = await db.getConnection();
+        await connection.beginTransaction();
+
+        const { id } = req.params;
+        const user_id = req.user.id;
+
+        const [orders] = await connection.query('SELECT * FROM orders WHERE id = ?', [id]);
+        if (orders.length === 0) {
+            throw new Error('ไม่พบคำสั่งซื้อนี้');
+        }
+
+        const order = orders[0];
+        if (order.user_id !== user_id && req.user.role !== 'admin') {
+            throw new Error('คุณไม่มีสิทธิ์ในการยกเลิกคำสั่งซื้อนี้');
+        }
+
+        if (order.status === 'cancelled') {
+            throw new Error('คำสั่งซื้อนี้ถูกยกเลิกไปแล้ว');
+        }
+
+        if (order.status === 'shipped' || order.status === 'delivered' || order.status === 'completed') {
+            throw new Error('ไม่สามารถยกเลิกได้เนื่องจากสินค้าถูกจัดส่งเรียบร้อยแล้ว');
+        }
+
+        // คืนสต็อกสินค้ากลับเข้าคลัง
+        const [items] = await connection.query('SELECT product_id, quantity FROM order_items WHERE order_id = ?', [id]);
+        for (let item of items) {
+            if (item.product_id) {
+                await connection.query(
+                    'UPDATE products SET stock = stock + ? WHERE id = ?',
+                    [item.quantity, item.product_id]
+                );
+            }
+        }
+
+        await connection.query(
+            'UPDATE orders SET status = ? WHERE id = ?',
+            ['cancelled', id]
+        );
+
+        await connection.commit();
+        res.json({ message: 'ยกเลิกคำสั่งซื้อสำเร็จ และคืนสต็อกสินค้าเรียบร้อยแล้ว' });
+    } catch (error) {
+        if (connection) await connection.rollback();
+        console.error(error);
+        res.status(400).json({ message: error.message || 'เกิดข้อผิดพลาดในการยกเลิกคำสั่งซื้อ' });
+    } finally {
+        if (connection) connection.release();
+    }
+};

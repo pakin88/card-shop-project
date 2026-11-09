@@ -2,9 +2,11 @@
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import { useAuthStore } from '../stores/auth';
+import { useCardGamesStore } from '../stores/cardGames';
 import { useRouter, useRoute } from 'vue-router';
 
 const authStore = useAuthStore();
+const cardGamesStore = useCardGamesStore();
 const router = useRouter();
 const route = useRoute();
 
@@ -18,25 +20,19 @@ const showModal = ref(false);
 const isEditMode = ref(false);
 const editingId = ref(null);
 
+// Modal จัดการการ์ดเกมและความแรร์
+const showGameModal = ref(false);
+const editingGameId = ref(null);
+const gameForm = ref({
+  name: '',
+  formats: '',
+  rarities: ''
+});
+
 const nonSingleTypes = [
   'บ็อกซ์ / ซองเสริม',
   'เซ็ท / เด็คพร้อมเล่น',
   'อุปกรณ์เสริม'
-];
-
-const rarityOptions = [
-  'RRR',
-  'RR',
-  'R',
-  'C',
-  'OR',
-  'SP',
-  'SEC',
-  'DSR',
-  'FFR',
-  'FR',
-  'SR',
-  'PR'
 ];
 
 const formData = ref({
@@ -51,6 +47,73 @@ const formData = ref({
   yuyutei_price: '',
   yuyutei_url: ''
 });
+
+// ดึงระดับความแรร์ตามหมวดหมู่/การ์ดเกมที่เลือก
+const currentRarityOptions = computed(() => {
+  return cardGamesStore.getRaritiesForCategory(formData.value.category) || cardGamesStore.vanguardGame.rarities;
+});
+
+const onCategoryChange = () => {
+  const rarities = cardGamesStore.getRaritiesForCategory(formData.value.category);
+  if (rarities && rarities.length > 0) {
+    if (!rarities.includes(formData.value.rarity)) {
+      formData.value.rarity = rarities[0];
+    }
+  }
+};
+
+const openGameModal = () => {
+  editingGameId.value = null;
+  gameForm.value = { name: '', formats: '', rarities: '' };
+  showGameModal.value = true;
+};
+
+const editGame = (game) => {
+  editingGameId.value = game.id;
+  gameForm.value = {
+    name: game.name,
+    formats: (game.formats || []).join(', '),
+    rarities: (game.rarities || []).join(', ')
+  };
+};
+
+const cancelEditGame = () => {
+  editingGameId.value = null;
+  gameForm.value = { name: '', formats: '', rarities: '' };
+};
+
+const saveGame = () => {
+  if (!gameForm.value.name.trim()) {
+    alert('กรุณากรอกชื่อการ์ดเกม');
+    return;
+  }
+  if (editingGameId.value) {
+    cardGamesStore.updateGame(editingGameId.value, {
+      name: gameForm.value.name,
+      formats: gameForm.value.formats,
+      rarities: gameForm.value.rarities
+    });
+    alert('แก้ไขข้อมูลการ์ดเกมสำเร็จ');
+  } else {
+    cardGamesStore.addGame({
+      name: gameForm.value.name,
+      formats: gameForm.value.formats,
+      rarities: gameForm.value.rarities
+    });
+    alert('เพิ่มการ์ดเกมและความแรร์ใหม่สำเร็จ');
+  }
+  cancelEditGame();
+};
+
+const removeGame = (game) => {
+  if (game.isVanguard) {
+    alert('ไม่สามารถลบการ์ดเกมแวนการ์ดได้');
+    return;
+  }
+  if (confirm(`คุณต้องการลบการ์ดเกม "${game.name}" ใช่หรือไม่?`)) {
+    cardGamesStore.deleteGame(game.id);
+  }
+};
 
 const imageFile = ref(null);
 const imagePreview = ref('');
@@ -95,11 +158,14 @@ const getImageUrl = (img) => {
 const openAddModal = () => {
   isEditMode.value = false;
   editingId.value = null;
+  const defaultCategory = cardGamesStore.vanguardGame.formats[0] || 'แวนการ์ด D ไทย';
+  const defaultRarity = cardGamesStore.getRaritiesForCategory(defaultCategory)[0] || 'RRR';
+
   formData.value = {
     name: '',
     product_type: 'การ์ดแยกใบ',
-    category: 'แวนการ์ด D JP',
-    rarity: 'RRR',
+    category: defaultCategory,
+    rarity: defaultRarity,
     price: '',
     stock: '',
     description: '',
@@ -244,9 +310,14 @@ onMounted(async () => {
   <div class="p-3 sm:p-6 max-w-6xl mx-auto">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
       <h1 class="text-2xl sm:text-3xl font-bold text-slate-900">จัดการคลังสินค้า (Admin)</h1>
-      <button @click="openAddModal" class="btn btn-primary btn-sm sm:btn-md text-black p-2 font-semibold w-full sm:w-auto hover:text-white hover:bg-green-500">
-        + เพิ่มสินค้าใหม่
-      </button>
+      <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+        <button @click="openGameModal" class="btn btn-outline btn-sm sm:btn-md font-semibold text-slate-700">
+          จัดการการ์ดเกม & ความแรร์
+        </button>
+        <button @click="openAddModal" class="btn btn-primary btn-sm sm:btn-md text-white font-semibold hover:bg-green-500">
+          + เพิ่มสินค้าใหม่
+        </button>
+      </div>
     </div>
 
     <div v-if="loading" class="text-center py-10">
@@ -391,20 +462,25 @@ onMounted(async () => {
             </div>
 
             <div class="form-control">
-              <label class="label py-1"><span class="label-text font-semibold text-slate-700">หมวดหมู่ Format *</span></label>
-              <select v-model="formData.category" class="select select-bordered select-sm sm:select-md w-full" required>
-                <option value="แวนการ์ด D ไทย">แวนการ์ด D ไทย</option>
-                <option value="แวนการ์ด D JP">แวนการ์ด D JP</option>
-                <option value="แวนการ์ด Premium">แวนการ์ด Premium</option>
-                <option value="อุปกรณ์เสริมการ์ด">อุปกรณ์เสริม / ทั่วไป</option>
+              <label class="label py-1"><span class="label-text font-semibold text-slate-700">หมวดหมู่ Format / การ์ดเกม *</span></label>
+              <select v-model="formData.category" @change="onCategoryChange" class="select select-bordered select-sm sm:select-md w-full" required>
+                <optgroup v-for="game in cardGamesStore.games" :key="game.id" :label="game.name">
+                  <option v-for="fmt in game.formats" :key="fmt" :value="fmt">{{ fmt }}</option>
+                </optgroup>
+                <optgroup label="สินค้าทั่วไป">
+                  <option value="อุปกรณ์เสริมการ์ด">อุปกรณ์เสริม / ทั่วไป</option>
+                </optgroup>
               </select>
             </div>
           </div>
 
           <div v-if="formData.product_type === 'การ์ดแยกใบ'" class="form-control">
-            <label class="label py-1"><span class="label-text font-semibold text-slate-700">ระดับความแรร์ (Rarity) *</span></label>
+            <div class="flex justify-between items-center py-1">
+              <label class="label-text font-semibold text-slate-700">ระดับความแรร์ (Rarity) *</label>
+              <span class="text-[11px] text-slate-400">อิงตามการ์ดเกมที่เลือก</span>
+            </div>
             <select v-model="formData.rarity" class="select select-bordered select-sm sm:select-md w-full" required>
-              <option v-for="r in rarityOptions" :key="r" :value="r">{{ r }}</option>
+              <option v-for="r in currentRarityOptions" :key="r" :value="r">{{ r }}</option>
             </select>
           </div>
 
@@ -481,12 +557,124 @@ onMounted(async () => {
 
           <div class="flex justify-end space-x-2 pt-4 border-t border-base-200 mt-4">
             <button type="button" @click="closeModal" class="btn btn-ghost btn-sm sm:btn-md text-slate-600">ยกเลิก</button>
-            <button type="submit" class="btn btn-primary btn-sm sm:btn-md text-black font-semibold" :disabled="isSubmitting">
+            <button type="submit" class="btn btn-primary btn-sm sm:btn-md text-white font-semibold" :disabled="isSubmitting">
               <span v-if="isSubmitting" class="loading loading-spinner"></span>
               บันทึกข้อมูล
             </button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- Modal จัดการการ์ดเกมและระดับความแรร์ -->
+    <div v-if="showGameModal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-3 sm:p-4">
+      <div class="bg-base-100 p-4 sm:p-6 rounded-2xl max-w-2xl w-full shadow-2xl border border-base-300 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center pb-3 border-b border-base-200">
+          <h2 class="text-xl font-bold text-slate-900">จัดการการ์ดเกมและระดับความแรร์</h2>
+          <button @click="showGameModal = false" class="btn btn-sm btn-circle btn-ghost">✕</button>
+        </div>
+
+        <!-- รายการการ์ดเกมที่มีอยู่ -->
+        <div class="mt-4 space-y-3">
+          <h3 class="text-sm font-bold text-slate-700">รายการการ์ดเกมในระบบ ({{ cardGamesStore.games.length }})</h3>
+          
+          <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
+            <div 
+              v-for="game in cardGamesStore.games" 
+              :key="game.id" 
+              class="p-3 rounded-xl border border-base-300 bg-base-50 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+            >
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-sm text-slate-900">{{ game.name }}</span>
+                  <span v-if="game.isVanguard" class="badge badge-primary badge-xs text-white font-semibold">ค่าเริ่มต้น</span>
+                </div>
+                <div class="text-xs text-slate-500 mt-1">
+                  <span class="font-semibold text-slate-600">หมวดหมู่/Format:</span> {{ (game.formats || []).join(', ') || '-' }}
+                </div>
+                <div class="text-xs text-slate-500 mt-0.5">
+                  <span class="font-semibold text-slate-600">ระดับความแรร์:</span>
+                  <span class="font-mono ml-1">{{ (game.rarities || []).join(', ') || '-' }}</span>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button @click="editGame(game)" class="btn btn-xs btn-outline font-semibold">
+                  แก้ไข
+                </button>
+                <button 
+                  v-if="!game.isVanguard" 
+                  @click="removeGame(game)" 
+                  class="btn btn-xs btn-error btn-outline font-semibold"
+                >
+                  ลบ
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ฟอร์มเพิ่ม / แก้ไขการ์ดเกม -->
+        <div class="mt-5 pt-4 border-t border-base-200">
+          <h3 class="text-sm font-bold text-slate-900 mb-2">
+            {{ editingGameId ? 'แก้ไขข้อมูลการ์ดเกม' : 'เพิ่มการ์ดเกมใหม่' }}
+          </h3>
+
+          <form @submit.prevent="saveGame" class="space-y-3">
+            <div class="form-control">
+              <label class="label py-1">
+                <span class="label-text font-semibold text-slate-700 text-xs">ชื่อการ์ดเกม * (เช่น Pokemon, One Piece, Yu-Gi-Oh)</span>
+              </label>
+              <input 
+                type="text" 
+                v-model="gameForm.name" 
+                placeholder="ระบุชื่อการ์ดเกม" 
+                class="input input-bordered input-sm w-full" 
+                required 
+              />
+            </div>
+
+            <div class="form-control">
+              <label class="label py-1">
+                <span class="label-text font-semibold text-slate-700 text-xs">หมวดหมู่หรือ Format ย่อย (คั่นด้วยเครื่องหมายจุลภาค , เช่น วันพีซไทย, วันพีซญี่ปุ่น)</span>
+              </label>
+              <input 
+                type="text" 
+                v-model="gameForm.formats" 
+                placeholder="เช่น One Piece การ์ดแยกใบ, One Piece บ็อกซ์/ซอง" 
+                class="input input-bordered input-sm w-full" 
+              />
+              <span class="text-[11px] text-slate-400 mt-0.5">หากเว้นว่าง ระบบจะใช้ชื่อการ์ดเกมเป็นหมวดหมู่หลัก</span>
+            </div>
+
+            <div class="form-control">
+              <label class="label py-1">
+                <span class="label-text font-semibold text-slate-700 text-xs">ระดับความแรร์ของการ์ดเกมนี้ (คั่นด้วยเครื่องหมายจุลภาค , เช่น SEC, SR, R, UC, C) *</span>
+              </label>
+              <textarea 
+                v-model="gameForm.rarities" 
+                placeholder="เช่น SEC, SR, R, UC, C, L, SP" 
+                class="textarea textarea-bordered h-16 w-full text-xs font-mono" 
+                required
+              ></textarea>
+              <span class="text-[11px] text-slate-400 mt-0.5">พิมพ์ระดับความแรร์คั่นด้วยเครื่องหมายจุลภาค ระบบจะนำไปเป็นตัวเลือกตอนลงสินค้า</span>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2">
+              <button 
+                v-if="editingGameId" 
+                type="button" 
+                @click="cancelEditGame" 
+                class="btn btn-ghost btn-sm"
+              >
+                ยกเลิกแก้ไข
+              </button>
+              <button type="submit" class="btn btn-primary btn-sm text-white font-semibold">
+                {{ editingGameId ? 'บันทึกการแก้ไข' : 'เพิ่มการ์ดเกม' }}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   </div>

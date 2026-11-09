@@ -14,6 +14,7 @@ const loading = ref(true);
 const errorMessage = ref('');
 const selectedOrder = ref(null);
 const selectedSlipModal = ref(null);
+const isCancelling = ref(false);
 
 const fetchMyOrders = async () => {
   loading.value = true;
@@ -36,6 +37,39 @@ const fetchMyOrders = async () => {
     console.error(error);
   } finally {
     loading.value = false;
+  }
+};
+
+const cancelOrder = async (orderId) => {
+  if (!confirm('คุณต้องการยกเลิกคำสั่งซื้อนี้ใช่หรือไม่? เมื่อยกเลิกแล้วสินค้าจะถูกคืนกลับเข้าสู่คลัง')) {
+    return;
+  }
+  isCancelling.value = true;
+  try {
+    let res;
+    try {
+      res = await axios.put(`${API_URL}/api/orders/${orderId}/cancel`, {}, {
+        headers: { Authorization: `Bearer ${authStore.token}` }
+      });
+    } catch (routeErr) {
+      if (routeErr.response?.status === 404) {
+        // หากเซิร์ฟเวอร์ Render ยังไม่มี route /cancel ให้ fallback ไปที่ /status
+        res = await axios.put(`${API_URL}/api/orders/${orderId}/status`, {
+          status: 'cancelled'
+        }, {
+          headers: { Authorization: `Bearer ${authStore.token}` }
+        });
+      } else {
+        throw routeErr;
+      }
+    }
+    alert(res.data?.message || 'ยกเลิกคำสั่งซื้อเรียบร้อยแล้ว');
+    await fetchMyOrders();
+  } catch (error) {
+    console.error(error);
+    alert(error.response?.data?.message || 'ไม่สามารถยกเลิกคำสั่งซื้อได้');
+  } finally {
+    isCancelling.value = false;
   }
 };
 
@@ -138,7 +172,7 @@ onMounted(() => {
           </svg>
           รีเฟรชข้อมูล
         </button>
-        <router-link to="/" class="btn btn-primary btn-sm text-black font-semibold">
+        <router-link to="/" class="btn btn-primary btn-sm text-white font-semibold">
           ช้อปการ์ดเพิ่ม
         </router-link>
       </div>
@@ -157,12 +191,14 @@ onMounted(() => {
 
     <!-- ไม่มีประวัติคำสั่งซื้อ -->
     <div v-else-if="orders.length === 0" class="text-center py-16 bg-base-100 rounded-2xl border border-base-300">
-      <div class="w-16 h-16 mx-auto mb-3 bg-base-200 rounded-full flex items-center justify-center text-3xl">
-        📦
+      <div class="w-16 h-16 mx-auto mb-3 bg-base-200 rounded-full flex items-center justify-center text-slate-400">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+        </svg>
       </div>
       <h3 class="text-lg font-bold text-slate-800">ยังไม่มีประวัติคำสั่งซื้อ</h3>
       <p class="text-sm text-gray-500 mb-4 mt-1">คุณยังไม่ได้สั่งซื้อการ์ดหรือสินค้าในระบบ</p>
-      <router-link to="/" class="btn btn-primary btn-sm text-black font-semibold">
+      <router-link to="/" class="btn btn-primary btn-sm text-white font-semibold">
         เลือกดูการ์ดแวนการ์ดเลย
       </router-link>
     </div>
@@ -218,9 +254,20 @@ onMounted(() => {
               </p>
             </div>
 
-            <span class="badge badge-lg" :class="getStatusBadge(selectedOrder.status).class">
-              {{ getStatusBadge(selectedOrder.status).text }}
-            </span>
+            <div class="flex flex-wrap items-center gap-2">
+              <button 
+                v-if="selectedOrder.status === 'pending' || selectedOrder.status === 'paid'"
+                @click="cancelOrder(selectedOrder.id)"
+                :disabled="isCancelling"
+                class="btn btn-outline btn-error btn-xs sm:btn-sm font-semibold"
+              >
+                <span v-if="isCancelling" class="loading loading-spinner loading-xs"></span>
+                ยกเลิกคำสั่งซื้อ
+              </button>
+              <span class="badge badge-lg" :class="getStatusBadge(selectedOrder.status).class">
+                {{ getStatusBadge(selectedOrder.status).text }}
+              </span>
+            </div>
           </div>
 
           <!-- 1. แถบสถานะการจัดส่ง (Step Timeline แนวนอนตามในภาพ) -->
@@ -299,9 +346,9 @@ onMounted(() => {
             
             <div class="bg-base-100 p-4 rounded-xl border border-base-300 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
               <div class="flex items-center gap-3">
-                <!-- แบรนด์ขนส่ง (Flash Express ตามภาพ) -->
+                <!-- แบรนด์ขนส่ง (Flash Express) -->
                 <div class="bg-amber-400 text-slate-950 font-black text-xs px-2.5 py-1.5 rounded-lg flex items-center gap-1 shadow-sm">
-                  <span>⚡ FLASH</span>
+                  <span>FLASH</span>
                   <span class="text-[10px] font-bold">Express</span>
                 </div>
 
@@ -320,7 +367,7 @@ onMounted(() => {
                 @click="openTrackingUrl(selectedOrder.tracking_number || 'TH1234567890')" 
                 class="btn btn-outline btn-sm btn-primary font-bold text-xs w-full sm:w-auto"
               >
-                ตรวจสอบสถานะ ➔
+                ตรวจสอบสถานะ
               </button>
             </div>
           </div>
@@ -369,7 +416,7 @@ onMounted(() => {
             <div class="bg-base-200/40 p-4 rounded-xl border border-base-200 space-y-2">
               <span class="text-xs font-semibold text-gray-500">วิธีการชำระเงิน:</span>
               <div class="flex items-center justify-between">
-                <span class="badge badge-primary text-black font-bold uppercase text-xs">
+                <span class="badge badge-primary text-white font-bold uppercase text-xs">
                   {{ selectedOrder.payment_method }}
                 </span>
                 
@@ -378,7 +425,7 @@ onMounted(() => {
                   @click="selectedSlipModal = selectedOrder.slip_image" 
                   class="btn btn-xs btn-outline font-semibold"
                 >
-                  🔍 ดูรูปสลิปโอนเงิน
+                  ดูรูปสลิปโอนเงิน
                 </button>
                 <span v-else class="text-[11px] text-gray-400">ไม่มีสลิป (COD)</span>
               </div>

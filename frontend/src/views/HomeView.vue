@@ -3,10 +3,12 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import axios from 'axios';
 import { useCartStore } from '../stores/cart';
 import { useAuthStore } from '../stores/auth';
+import { useCardGamesStore } from '../stores/cardGames';
 import { useRouter, useRoute } from 'vue-router';
 
 const cartStore = useCartStore();
 const authStore = useAuthStore();
+const cardGamesStore = useCardGamesStore();
 const router = useRouter();
 const route = useRoute();
 
@@ -86,14 +88,17 @@ const nonSingleTypes = [
   'อุปกรณ์เสริม'
 ];
 
-const rarityOptions = [
-  'RRR', 'RR', 'R', 'C', 'OR', 'SP', 'SEC', 'DSR', 'FFR', 'FR', 'SR', 'PR'
-];
-
 const searchQuery = ref('');
 const selectedFormat = ref(route.query.category || '');
 const selectedProductType = ref('');
 const selectedRarity = ref('');
+
+const currentRarityOptions = computed(() => {
+  if (selectedFormat.value) {
+    return cardGamesStore.getRaritiesForCategory(selectedFormat.value);
+  }
+  return cardGamesStore.vanguardGame.rarities;
+});
 
 const fetchExchangeRate = async () => {
   try {
@@ -182,7 +187,22 @@ const filteredProducts = computed(() => {
     const prodType = getProductType(product);
     const prodRarity = getProductRarity(product);
 
-    const matchCategory = !selectedFormat.value || prodCategory === selectedFormat.value;
+    let matchCategory = true;
+    if (selectedFormat.value) {
+      if (selectedFormat.value === 'แวนการ์ด' || selectedFormat.value === 'แวนการ์ดทั้งหมด') {
+        matchCategory = prodCategory.includes('แวนการ์ด') || 
+          cardGamesStore.vanguardGame.formats.includes(prodCategory);
+      } else {
+        const matchedGame = cardGamesStore.otherGames.find(g => g.name === selectedFormat.value);
+        if (matchedGame) {
+          matchCategory = prodCategory === matchedGame.name || 
+            (matchedGame.formats && matchedGame.formats.includes(prodCategory));
+        } else {
+          matchCategory = prodCategory === selectedFormat.value;
+        }
+      }
+    }
+
     const matchType = !selectedProductType.value || prodType === selectedProductType.value;
     const q = searchQuery.value.toLowerCase();
     const matchSearch = !q || 
@@ -364,7 +384,7 @@ onUnmounted(() => {
         <button 
           v-if="authStore.isAdmin" 
           @click="goToAddProduct" 
-          class="btn btn-outline btn-primary btn-sm text-black w-full sm:w-auto hover:text-white hover:bg-green-500 p-2"
+          class="btn btn-outline btn-primary btn-sm text-primary w-full sm:w-auto hover:text-white hover:bg-green-500 p-2"
         >
           + เพิ่มสินค้าใหม่
         </button>
@@ -388,10 +408,13 @@ onUnmounted(() => {
             class="select select-bordered select-sm sm:select-md w-full lg:w-48 text-xs sm:text-sm"
           >
             <option value="">ทุกหมวดหมู่ Format</option>
-            <option value="แวนการ์ด D ไทย">แวนการ์ด D ไทย</option>
-            <option value="แวนการ์ด D JP">แวนการ์ด D JP</option>
-            <option value="แวนการ์ด Premium">แวนการ์ด Premium</option>
-            <option value="อุปกรณ์เสริมการ์ด">อุปกรณ์เสริม / ทั่วไป</option>
+            <optgroup v-for="game in cardGamesStore.games" :key="game.id" :label="game.name">
+              <option :value="game.name">ทุก Format ใน {{ game.name }}</option>
+              <option v-for="fmt in game.formats" :key="fmt" :value="fmt">{{ fmt }}</option>
+            </optgroup>
+            <optgroup label="สินค้าทั่วไป">
+              <option value="อุปกรณ์เสริมการ์ด">อุปกรณ์เสริม / ทั่วไป</option>
+            </optgroup>
           </select>
 
           <!-- เลือกประเภทสินค้า -->
@@ -415,7 +438,7 @@ onUnmounted(() => {
             class="select select-bordered select-sm sm:select-md w-full lg:w-44 text-xs sm:text-sm col-span-2 sm:col-span-1"
           >
             <option value="">ความแรร์ทั้งหมด</option>
-            <option v-for="r in rarityOptions" :key="r" :value="r">{{ r }}</option>
+            <option v-for="r in currentRarityOptions" :key="r" :value="r">{{ r }}</option>
           </select>
         </div>
 
@@ -525,7 +548,7 @@ onUnmounted(() => {
 
               <button 
                 v-else
-                class="btn btn-primary btn-xs sm:btn-sm text-black w-full sm:w-auto" 
+                class="btn btn-primary btn-xs sm:btn-sm text-black font-semibold w-full sm:w-auto disabled:text-slate-400 disabled:bg-slate-200" 
                 :disabled="product.stock === 0"
                 @click="cartStore.addToCart(product)"
               >
@@ -682,7 +705,7 @@ onUnmounted(() => {
 
               <button 
                 v-else
-                class="btn btn-primary btn-sm sm:btn-md text-black font-bold shadow flex-1 sm:flex-initial" 
+                class="btn btn-primary btn-sm sm:btn-md text-white font-bold shadow flex-1 sm:flex-initial disabled:text-slate-400 disabled:bg-slate-200" 
                 :disabled="selectedProduct.stock === 0"
                 @click="cartStore.addToCart(selectedProduct); selectedProduct = null;"
               >

@@ -10,6 +10,9 @@ router.post('/', verifyToken, upload.single('slip_image'), orderController.creat
 // ดึงประวัติคำสั่งซื้อของลูกค้าที่ล็อกอินอยู่
 router.get('/my-orders', verifyToken, orderController.getMyOrders);
 
+// ลูกค้ายกเลิกคำสั่งซื้อของตนเอง
+router.put('/:id/cancel', verifyToken, orderController.cancelMyOrder);
+
 // สำหรับ Admin จัดการออเดอร์ทั้งหมด, อัปเดตสถานะ และลบออเดอร์
 router.get('/', orderController.getAllOrders);
 router.put('/:id/status', orderController.updateOrderStatus);

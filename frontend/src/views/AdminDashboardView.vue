@@ -203,7 +203,7 @@ onMounted(() => {
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-base-100 p-5 rounded-2xl shadow-sm border border-base-300">
       <div>
         <div class="flex items-center gap-2">
-          <span class="badge badge-primary text-black font-bold">Admin Portal</span>
+          <span class="badge badge-primary text-white font-bold">Admin Portal</span>
           <span class="text-xs text-gray-400">บทบาท: ผู้ดูแลร้านค้า (Admin)</span>
         </div>
         <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">

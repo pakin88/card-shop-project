@@ -1,21 +1,31 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useAuthStore } from './stores/auth';
 import { useCartStore } from './stores/cart';
+import { useCardGamesStore } from './stores/cardGames';
 import { useRouter, useRoute } from 'vue-router';
 
 const authStore = useAuthStore();
 const cartStore = useCartStore();
+const cardGamesStore = useCardGamesStore();
 const router = useRouter();
 const route = useRoute();
 
 const isMobileMenuOpen = ref(false);
 
-const vanguardFormats = [
-  'แวนการ์ด D ไทย',
-  'แวนการ์ด D JP',
-  'แวนการ์ด Premium'
-];
+const isVanguardActive = computed(() => {
+  const cat = route.query.category;
+  if (!cat) return false;
+  if (cat === 'แวนการ์ด' || cat === 'แวนการ์ดทั้งหมด') return true;
+  return cardGamesStore.vanguardGame?.formats?.includes(cat);
+});
+
+const isGameActive = (game) => {
+  const cat = route.query.category;
+  if (!cat) return false;
+  if (cat === game.name) return true;
+  return game.formats && game.formats.includes(cat);
+};
 
 const goHome = () => {
   isMobileMenuOpen.value = false;
@@ -75,20 +85,45 @@ const handleLogout = () => {
 
         <div class="divider my-0 text-xs font-bold text-slate-400">หมวดหมู่สินค้า</div>
 
-        <!-- รายการหมวดหมู่ Format -->
+        <!-- รายการหมวดหมู่การ์ดเกม -->
         <ul class="menu menu-sm bg-base-100 w-full p-0 gap-1 text-slate-700 font-medium">
           <li>
-            <button @click="selectFormat(null)" :class="!route.query.category && route.path === '/' ? 'active bg-primary text-white' : ''">
+            <button @click="selectFormat(null)" :class="!route.query.category && route.path === '/' ? 'active bg-primary text-black font-bold' : ''">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
               หน้าแรก / ทั้งหมด
             </button>
           </li>
-          <li v-for="format in vanguardFormats" :key="format">
-            <button @click="selectFormat(format)" :class="route.query.category === format ? 'active bg-primary text-white' : ''">
+          
+          <!-- แวนการ์ด (มีหมวดหมู่ย่อย) -->
+          <li class="menu-title text-xs font-bold text-slate-500 pt-2">การ์ดแวนการ์ด</li>
+          <li>
+            <button @click="selectFormat('แวนการ์ด')" :class="route.query.category === 'แวนการ์ด' ? 'active bg-primary text-black font-bold' : ''">
+              แวนการ์ดทั้งหมด
+            </button>
+          </li>
+          <li v-for="format in cardGamesStore.vanguardGame.formats" :key="format">
+            <button @click="selectFormat(format)" :class="route.query.category === format ? 'active bg-primary text-black font-bold' : ''">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
               {{ format }}
             </button>
           </li>
+
+          <!-- การ์ดเกมอื่นๆ -->
+          <template v-if="cardGamesStore.otherGames.length > 0">
+            <li class="menu-title text-xs font-bold text-slate-500 pt-2">การ์ดเกมอื่นๆ</li>
+            <template v-for="game in cardGamesStore.otherGames" :key="game.id">
+              <li>
+                <button @click="selectFormat(game.name)" :class="route.query.category === game.name ? 'active bg-primary text-black font-bold' : ''">
+                  {{ game.name }} (ทั้งหมด)
+                </button>
+              </li>
+              <li v-for="fmt in game.formats" :key="fmt">
+                <button v-if="fmt !== game.name" @click="selectFormat(fmt)" :class="route.query.category === fmt ? 'active bg-primary text-black font-bold' : ''" class="pl-6">
+                  - {{ fmt }}
+                </button>
+              </li>
+            </template>
+          </template>
         </ul>
 
         <template v-if="authStore.isLoggedIn">
@@ -150,20 +185,87 @@ const handleLogout = () => {
             <button 
               @click="selectFormat(null)" 
               class="btn btn-sm"
-              :class="!route.query.category && route.path === '/' ? 'btn-primary text-black text-bold font-medium' : 'btn-ghost text-slate-700'"
+              :class="!route.query.category && route.path === '/' ? 'btn-primary text-black font-bold' : 'btn-ghost text-slate-700'"
             >
               ทั้งหมด
             </button>
 
-            <button 
-              v-for="format in vanguardFormats" 
-              :key="format"
-              @click="selectFormat(format)"
-              class="btn btn-sm"
-              :class="route.query.category === format ? 'btn-primary text-black text-bold font-medium' : 'btn-ghost text-slate-700'"
-            >
-              {{ format }}
-            </button>
+            <!-- เมนูแวนการ์ด: รวมเป็นเมนูเดียว เอาเมาส์ไปชี้เป็นตัวเลือกลงมา -->
+            <div class="dropdown dropdown-hover">
+              <div 
+                tabindex="0" 
+                role="button" 
+                class="btn btn-sm flex items-center gap-1"
+                :class="isVanguardActive ? 'btn-primary text-black font-bold' : 'btn-ghost text-slate-700'"
+              >
+                <span>แวนการ์ด</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+              <ul tabindex="0" class="dropdown-content z-50 menu p-2 shadow-lg bg-base-100 rounded-xl w-48 border border-base-200 text-slate-800">
+                <li>
+                  <button 
+                    @click="selectFormat('แวนการ์ด')" 
+                    :class="route.query.category === 'แวนการ์ด' ? 'active bg-primary text-black font-bold' : ''"
+                  >
+                    แวนการ์ดทั้งหมด
+                  </button>
+                </li>
+                <li v-for="format in cardGamesStore.vanguardGame.formats" :key="format">
+                  <button 
+                    @click="selectFormat(format)" 
+                    :class="route.query.category === format ? 'active bg-primary text-black font-bold' : ''"
+                  >
+                    {{ format }}
+                  </button>
+                </li>
+              </ul>
+            </div>
+
+            <!-- การ์ดเกมอื่นๆ ที่เพิ่มเข้ามา -->
+            <template v-for="game in cardGamesStore.otherGames" :key="game.id">
+              <div v-if="game.formats && game.formats.length > 1" class="dropdown dropdown-hover">
+                <div 
+                  tabindex="0" 
+                  role="button" 
+                  class="btn btn-sm flex items-center gap-1"
+                  :class="isGameActive(game) ? 'btn-primary text-black font-bold' : 'btn-ghost text-slate-700'"
+                >
+                  <span>{{ game.name }}</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+                <ul tabindex="0" class="dropdown-content z-50 menu p-2 shadow-lg bg-base-100 rounded-xl w-48 border border-base-200 text-slate-800">
+                  <li>
+                    <button 
+                      @click="selectFormat(game.name)" 
+                      :class="route.query.category === game.name ? 'active bg-primary text-black font-bold' : ''"
+                    >
+                      ทั้งหมด ({{ game.name }})
+                    </button>
+                  </li>
+                  <li v-for="fmt in game.formats" :key="fmt">
+                    <button 
+                      @click="selectFormat(fmt)" 
+                      :class="route.query.category === fmt ? 'active bg-primary text-black font-bold' : ''"
+                    >
+                      {{ fmt }}
+                    </button>
+                  </li>
+                </ul>
+              </div>
+
+              <button 
+                v-else 
+                @click="selectFormat(game.formats[0] || game.name)" 
+                class="btn btn-sm"
+                :class="route.query.category === (game.formats[0] || game.name) ? 'btn-primary text-black font-bold' : 'btn-ghost text-slate-700'"
+              >
+                {{ game.name }}
+              </button>
+            </template>
           </div>
         </div>
 
@@ -197,8 +299,8 @@ const handleLogout = () => {
               </router-link>
 
               <template v-if="authStore.isAdmin">
-                <router-link to="/admin/dashboard" class="btn btn-primary btn-sm text-black font-bold shadow-sm">
-                  📊 แดชบอร์ด (Admin)
+                <router-link to="/admin/dashboard" class="btn btn-primary btn-sm text-white font-bold shadow-sm">
+                  แดชบอร์ด (Admin)
                 </router-link>
                 <router-link to="/admin/orders" class="btn btn-warning btn-sm text-slate-900 font-bold shadow-sm">
                   จัดการออเดอร์ (Admin)

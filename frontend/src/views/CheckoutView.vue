@@ -81,6 +81,62 @@ const copyAccountNumber = (accNo) => {
   alert(`คัดลอกเลขบัญชี ${accNo} เรียบร้อยแล้ว`);
 };
 
+// ข้อมูลพร้อมเพย์
+const promptPayNumber = ref(localStorage.getItem('card_shop_promptpay') || '0947153616');
+
+// ฟังก์ชันคำนวณ CRC16 Checksum สำหรับ EMVCo
+const crc16 = (data) => {
+  let crc = 0xFFFF;
+  for (let i = 0; i < data.length; i++) {
+    crc ^= data.charCodeAt(i) << 8;
+    for (let j = 0; j < 8; j++) {
+      if ((crc & 0x8000) !== 0) {
+        crc = ((crc << 1) ^ 0x1021) & 0xFFFF;
+      } else {
+        crc = (crc << 1) & 0xFFFF;
+      }
+    }
+  }
+  return crc.toString(16).toUpperCase().padStart(4, '0');
+};
+
+// ฟังก์ชันสร้าง EMVCo Payload สำหรับ PromptPay QR Code
+const generatePromptPayPayload = (target, amount) => {
+  const sanitized = target.replace(/[^0-9]/g, '');
+  let targetTag = '';
+  if (sanitized.length === 10) {
+    const formatted = '0066' + sanitized.substring(1);
+    targetTag = '01' + formatted.length.toString().padStart(2, '0') + formatted;
+  } else if (sanitized.length === 13) {
+    targetTag = '02' + sanitized.length.toString().padStart(2, '0') + sanitized;
+  } else {
+    targetTag = '01' + sanitized.length.toString().padStart(2, '0') + sanitized;
+  }
+
+  const aid = '0016A000000677010111';
+  const tag29Value = aid + targetTag;
+  const tag29 = '29' + tag29Value.length.toString().padStart(2, '0') + tag29Value;
+
+  let payload = '000201' + (amount ? '010212' : '010211') + tag29 + '5802TH' + '5303764';
+  if (amount && Number(amount) > 0) {
+    const amtStr = Number(amount).toFixed(2);
+    payload += '54' + amtStr.length.toString().padStart(2, '0') + amtStr;
+  }
+  payload += '6304';
+  payload += crc16(payload);
+  return payload;
+};
+
+const promptPayQrUrl = computed(() => {
+  const payload = generatePromptPayPayload(promptPayNumber.value, finalTotal.value);
+  return `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(payload)}`;
+});
+
+const copyPromptPayNumber = (phone) => {
+  navigator.clipboard.writeText(phone);
+  alert(`คัดลอกเบอร์พร้อมเพย์ ${phone} เรียบร้อยแล้ว`);
+};
+
 // URL รูปภาพ
 const getImageUrl = (img) => {
   if (!img) return '';
@@ -169,7 +225,7 @@ const submitOrder = async () => {
         <div class="flex flex-col items-center">
           <div 
             class="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm transition-all shadow"
-            :class="currentStep >= 1 ? 'bg-primary text-black' : 'bg-base-300 text-gray-500'"
+            :class="currentStep >= 1 ? 'bg-primary text-white' : 'bg-base-300 text-gray-500'"
           >
             1
           </div>
@@ -184,7 +240,7 @@ const submitOrder = async () => {
         <div class="flex flex-col items-center">
           <div 
             class="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm transition-all shadow"
-            :class="currentStep >= 2 ? 'bg-primary text-black' : 'bg-base-300 text-gray-500'"
+            :class="currentStep >= 2 ? 'bg-primary text-white' : 'bg-base-300 text-gray-500'"
           >
             2
           </div>
@@ -199,7 +255,7 @@ const submitOrder = async () => {
         <div class="flex flex-col items-center">
           <div 
             class="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm transition-all shadow"
-            :class="currentStep >= 3 ? 'bg-primary text-black' : 'bg-base-300 text-gray-500'"
+            :class="currentStep >= 3 ? 'bg-primary text-white' : 'bg-base-300 text-gray-500'"
           >
             3
           </div>
@@ -227,12 +283,14 @@ const submitOrder = async () => {
 
     <!-- กรณีไม่มีสินค้า และยังไม่ได้เสร็จสิ้น -->
     <div v-if="cartStore.items.length === 0 && currentStep !== 4" class="text-center py-16 bg-base-100 rounded-2xl border border-base-300">
-      <div class="w-16 h-16 mx-auto mb-3 bg-base-200 rounded-full flex items-center justify-center text-gray-400 text-2xl">
-        🛒
+      <div class="w-16 h-16 mx-auto mb-3 bg-base-200 rounded-full flex items-center justify-center text-slate-400">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
       </div>
       <h2 class="text-xl font-bold text-slate-800 mb-2">ไม่มีสินค้าในตะกร้า</h2>
       <p class="text-sm text-gray-500 mb-4">คุณยังไม่ได้เลือกการ์ดหรือสินค้าใดๆ</p>
-      <router-link to="/" class="btn btn-primary btn-sm text-black font-semibold">
+      <router-link to="/" class="btn btn-primary btn-sm text-white font-semibold">
         กลับไปเลือกซื้อสินค้า
       </router-link>
     </div>
@@ -295,7 +353,7 @@ const submitOrder = async () => {
           </div>
 
           <div class="pt-4 border-t border-base-200 flex justify-end">
-            <button @click="goToStep(2)" class="btn btn-primary text-black font-bold w-full sm:w-auto px-8">
+            <button @click="goToStep(2)" class="btn btn-primary text-white font-bold w-full sm:w-auto px-8">
               ดำเนินการชำระเงิน ➔
             </button>
           </div>
@@ -345,7 +403,9 @@ const submitOrder = async () => {
                 :class="formData.payment_method === 'qr' ? 'border-primary bg-primary/10 shadow-sm' : 'border-base-200 hover:border-base-300'"
               >
                 <input type="radio" v-model="formData.payment_method" value="qr" class="hidden" />
-                <span class="text-2xl mb-1">📱</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                </svg>
                 <span class="font-bold text-xs sm:text-sm text-slate-900">QR PromptPay</span>
                 <span class="text-[10px] text-gray-500 mt-0.5">สแกนจ่ายทันใจ ไม่มีค่าธรรมเนียม</span>
               </label>
@@ -356,7 +416,9 @@ const submitOrder = async () => {
                 :class="formData.payment_method === 'transfer' ? 'border-primary bg-primary/10 shadow-sm' : 'border-base-200 hover:border-base-300'"
               >
                 <input type="radio" v-model="formData.payment_method" value="transfer" class="hidden" />
-                <span class="text-2xl mb-1">🏦</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
                 <span class="font-bold text-xs sm:text-sm text-slate-900">โอนผ่านธนาคาร</span>
                 <span class="text-[10px] text-gray-500 mt-0.5">กสิกรไทย / ไทยพาณิชย์</span>
               </label>
@@ -367,7 +429,9 @@ const submitOrder = async () => {
                 :class="formData.payment_method === 'cod' ? 'border-primary bg-primary/10 shadow-sm' : 'border-base-200 hover:border-base-300'"
               >
                 <input type="radio" v-model="formData.payment_method" value="cod" class="hidden" />
-                <span class="text-2xl mb-1">📦</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
                 <span class="font-bold text-xs sm:text-sm text-slate-900">เก็บเงินปลายทาง</span>
                 <span class="text-[10px] text-gray-500 mt-0.5">ชำระเงินเมื่อรับพัสดุ (COD)</span>
               </label>
@@ -378,7 +442,7 @@ const submitOrder = async () => {
             <button @click="currentStep = 1" class="btn btn-ghost btn-sm text-gray-600">
               ❮ กลับไปตะกร้า
             </button>
-            <button @click="goToStep(3)" class="btn btn-primary text-black font-bold px-6">
+            <button @click="goToStep(3)" class="btn btn-primary text-white font-bold px-6">
               ต่อไป: ชำระเงินและแนบสลิป ➔
             </button>
           </div>
@@ -396,21 +460,33 @@ const submitOrder = async () => {
 
           <!-- กล่องรายละเอียดการชำระเงิน -->
           <div v-if="formData.payment_method === 'qr'" class="bg-blue-50/70 border border-blue-200 p-4 rounded-xl text-center">
-            <span class="badge badge-primary text-black font-bold text-xs mb-2">PromptPay QR Code</span>
+            <span class="badge badge-primary text-white font-bold text-xs mb-2">PromptPay QR Code</span>
             <h3 class="font-bold text-sm text-slate-900">สแกนชำระเงินผ่านแอปธนาคารทุกแห่ง</h3>
-            <p class="text-xs text-gray-500 mt-0.5">ชื่อบัญชี: บจก. แวนการ์ด ช็อป ไทยแลนด์ (Vanguard Shop TH)</p>
+            <p class="text-xs text-slate-700 mt-1">
+              เบอร์พร้อมเพย์: <span class="font-bold font-mono text-blue-900 text-sm">094-715-3616</span>
+            </p>
             
-            <!-- จำลอง PromptPay QR Code ที่คมชัดและมียอดตรงเป๊ะ -->
+            <!-- PromptPay QR Code มาตรฐาน EMVCo พร้อมยอดเงินอัตโนมัติ -->
             <div class="my-4 flex flex-col items-center">
-              <div class="bg-white p-3 rounded-2xl shadow border border-blue-200 inline-block">
+              <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-blue-200 inline-block">
                 <img 
-                  :src="`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=PROMPTPAY-0812345678-AMOUNT-${finalTotal}`" 
+                  :src="promptPayQrUrl" 
                   alt="PromptPay QR Code"
-                  class="w-44 h-44 object-contain rounded-lg"
+                  class="w-48 h-48 object-contain rounded-lg"
                 />
               </div>
-              <p class="text-lg font-extrabold text-blue-900 mt-2">ยอดชำระ: ฿{{ finalTotal.toLocaleString() }}</p>
-              <p class="text-[11px] text-gray-400">* สแกนแล้วบันทึกสลิป เพื่ออัปโหลดด้านล่าง</p>
+              <p class="text-lg font-extrabold text-blue-900 mt-2.5">ยอดชำระ: ฿{{ finalTotal.toLocaleString() }}</p>
+              <div class="flex items-center gap-2 mt-1">
+                <span class="text-xs text-slate-600 font-mono">094-715-3616</span>
+                <button 
+                  type="button" 
+                  @click="copyPromptPayNumber('0947153616')" 
+                  class="btn btn-outline btn-xs font-semibold"
+                >
+                  คัดลอกเบอร์
+                </button>
+              </div>
+              <p class="text-[11px] text-gray-500 mt-2">* เมื่อสแกนผ่านแอปธนาคาร ยอดเงิน ฿{{ finalTotal.toLocaleString() }} จะถูกระบุให้อัตโนมัติ</p>
             </div>
           </div>
 
@@ -445,7 +521,6 @@ const submitOrder = async () => {
           </div>
 
           <div v-else class="bg-amber-50/70 border border-amber-200 p-4 rounded-xl text-center">
-            <span class="text-2xl">📦</span>
             <h3 class="font-bold text-sm text-slate-900 mt-1">เก็บเงินปลายทาง (COD)</h3>
             <p class="text-xs text-slate-600 mt-1">
               เตรียมเงินสดจำนวน <span class="font-bold text-primary">฿{{ finalTotal.toLocaleString() }}</span> ให้พนักงานส่งพัสดุในวันจัดส่ง
@@ -529,7 +604,7 @@ const submitOrder = async () => {
                 placeholder="กรอกโค้ด เช่น VG10" 
                 class="input input-bordered input-sm flex-1 text-xs uppercase"
               />
-              <button @click="applyCoupon" class="btn btn-sm btn-primary text-black font-semibold">
+              <button @click="applyCoupon" class="btn btn-sm btn-primary text-white font-semibold">
                 ใช้
               </button>
             </div>
@@ -565,22 +640,22 @@ const submitOrder = async () => {
           <button 
             v-if="currentStep === 1" 
             @click="goToStep(2)" 
-            class="btn btn-primary w-full text-black font-bold text-sm shadow"
+            class="btn btn-primary w-full text-white font-bold text-sm shadow"
           >
             ดำเนินการชำระเงิน ➔
           </button>
           <button 
             v-else-if="currentStep === 2" 
             @click="goToStep(3)" 
-            class="btn btn-primary w-full text-black font-bold text-sm shadow"
+            class="btn btn-primary w-full text-white font-bold text-sm shadow"
           >
             ต่อไป: ชำระเงินและแนบสลิป ➔
           </button>
         </div>
 
         <div class="bg-base-100 p-4 rounded-xl border border-base-200 text-xs text-gray-500 space-y-1">
-          <p>🔒 ระบบชำระเงินปลอดภัย 100%</p>
-          <p>📦 จัดส่งสินค้าภายใน 1-3 วันทำการหลังยืนยันการชำระเงิน</p>
+          <p>ระบบชำระเงินปลอดภัย ได้มาตรฐาน</p>
+          <p>จัดส่งสินค้าภายใน 1-3 วันทำการหลังยืนยันการชำระเงิน</p>
         </div>
       </div>
 
@@ -616,7 +691,7 @@ const submitOrder = async () => {
       </div>
 
       <div class="flex flex-col sm:flex-row gap-2.5 pt-2">
-        <router-link to="/my-orders" class="btn btn-primary text-black font-bold flex-1 shadow">
+        <router-link to="/my-orders" class="btn btn-primary text-white font-bold flex-1 shadow">
           ติดตามคำสั่งซื้อของฉัน ➔
         </router-link>
         <router-link to="/" class="btn btn-outline flex-1">
