@@ -147,7 +147,7 @@ onMounted(() => {
             <button 
                 @click="activeTab = 'to_ship'" 
                 class="btn btn-xs sm:btn-sm"
-                :class="activeTab === 'to_ship' ? 'btn-primary text-white' : 'btn-ghost bg-base-100'"
+                :class="activeTab === 'to_ship' ? 'btn-primary text-black' : 'btn-ghost bg-base-100'"
             >
                 ที่ต้องจัดส่ง ({{ tabCounts.to_ship }})
             </button>

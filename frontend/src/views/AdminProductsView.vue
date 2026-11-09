@@ -314,7 +314,7 @@ onMounted(async () => {
         <button @click="openGameModal" class="btn btn-outline btn-sm sm:btn-md font-semibold text-slate-700">
           จัดการการ์ดเกม & ความแรร์
         </button>
-        <button @click="openAddModal" class="btn btn-primary btn-sm sm:btn-md text-white font-semibold hover:bg-green-500">
+        <button @click="openAddModal" class="btn btn-primary btn-sm sm:btn-md text-black font-semibold hover:bg-green-500 hover:text-white">
           + เพิ่มสินค้าใหม่
         </button>
       </div>
